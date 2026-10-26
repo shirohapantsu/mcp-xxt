@@ -105,27 +105,14 @@ node scripts/sync-bundle.mjs
 npm run build
 ```
 
-#### 第四步：（可选）配置账号与运行测试校验
+#### 第四步：（可选）配置账号
 
-1. **配置自动登录账号（可选）**：
-   创建 `server/config/account.json`（已被 `.gitignore` 忽略），填入学习通手机号/学号与密码；若不配置，调用 `open_login` 时可在弹出的浏览器窗口中手动或扫码登录（登录态会自动保存在 `server/.browser-profile/` 中）：
+   创建 `server/config/account.json`，填入学习通手机号/学号与密码；若不配置，调用 `open_login` 时可在弹出的浏览器窗口中手动或扫码登录（登录态会自动保存在 `server/.browser-profile/` 中）：
    ```json
    {
      "username": "你的手机号或学号",
      "password": "你的密码"
    }
-   ```
-
-2. **运行自动化测试验证构建产物**：
-   ```bash
-   # 运行单元测试（填空 JSON 数组编码、Run 状态机、Session 游标、单 Run 互斥、重进计数）
-   npm test
-
-   # 运行本地双 Origin 注入冒烟测试（验证 GM Shim、跨源存储中继、确认制、回填与取消传播）
-   node tests/smoke-inject.mjs
-
-   # 运行 MCP stdio 协议测试（验证 11 个工具注册与协议交互）
-   node tests/mcp-stdio-test.mjs
    ```
 
 ---
