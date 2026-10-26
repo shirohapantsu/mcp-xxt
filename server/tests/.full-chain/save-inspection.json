@@ -1,0 +1,882 @@
+{
+  "inspectedAt": "2026-10-24T10:32:07.459Z",
+  "questionCount": 20,
+  "persistence": [
+    {
+      "index": 1,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 2,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 3,
+      "type": "single",
+      "value": "A",
+      "expected": "A",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 4,
+      "type": "single",
+      "value": "D",
+      "expected": "D",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 5,
+      "type": "single",
+      "value": "C",
+      "expected": "C",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 6,
+      "type": "single",
+      "value": "C",
+      "expected": "C",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 7,
+      "type": "single",
+      "value": "A",
+      "expected": "A",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 8,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 9,
+      "type": "single",
+      "value": "A",
+      "expected": "A",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 10,
+      "type": "multiple",
+      "value": "ACD",
+      "expected": "ACD",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 11,
+      "type": "multiple",
+      "value": "ABC",
+      "expected": "BC",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 12,
+      "type": "multiple",
+      "value": "AC",
+      "expected": "AC",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 13,
+      "type": "multiple",
+      "value": "ABCD",
+      "expected": "ABCD",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 14,
+      "type": "multiple",
+      "value": "BC",
+      "expected": "BC",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 15,
+      "type": "multiple",
+      "value": "AC",
+      "expected": "AC",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 16,
+      "type": "multiple",
+      "value": "ACD",
+      "expected": "ACD",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 17,
+      "type": "judgement",
+      "value": "false",
+      "expected": "false",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 18,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 19,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 20,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    }
+  ],
+  "href": "https://mooc1.chaoxing.com/mooc-ans/work/doHomeWorkNew?courseId=267298804&workAnswerId=55341065&workId=55869395&api=1&knowledgeid=1249930799&classId=155243931&oldWorkId=fb49e35c93d747a5af478737cb217523&jobid=work-fb49e35c93d747a5af478737cb217523&type=&isphone=false&submit=false&enc=424bbb30d7c284904af06a3aa661c182&cpi=508143193&mooc2=1&skipHeader=true&originJobId=work-fb49e35c93d747a5af478737cb217523&fromType=&wMicroNodeId=0",
+  "noSubmit": "function noSubmit(){\n\t\tif(tempSave){\n\t\t\treturn;\n\t\t}\n\t\tvar a = \"406234657,406234653,406234651,406234652,406234650,406234658,406234656,406234654,406234648,406234665,406234663,406234666,406234661,406234667,406234662,406234660,406234668,406234670,406234673,406234671,\";\n\t\t$(\"#answerwqbid\").val(a);\n\t\t$(\"#pyFlag\").val(\"1\");\n\n\t\tsetClozeTextAnswers();\n\t\tsetConnLineAnswer();\n\t\tsetSortQuesAnswer();\n\t\tsetAllClozeAnswer();\n\t\tsetReadComprehensionAnswer();\n\t\tsetProceduralAnswer();\n\t\tif (typeof updateAllFillinBlanksData === 'function') {\n\t\t\tupdateAllFillinBlanksData();\n\t\t}\n\t\t// setBType();\n\t\ttempSave=true;\n\t\t$(\"#tempsave\").text('正在暂存...');\n\n\t\tsaveWork();\n\t}",
+  "btnBlueSubmit": "function btnBlueSubmit() {\n\t\tif(reqLimit < 0){\n\t\t\tvar submitOffsetTop = 0;\n\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t}\n\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t$.toast({\n\t\t\t\t\ttype : 'failure',\n\t\t\t\t\tcontent : \"请刷新页面后重试\",\n\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t});\n\t\t\t}else {\n\t\t\t\talert(\"请刷新页面后重试\");\n\t\t\t}\n\t\t\treturn ;\n\t\t}\n\t\treqLimit--;\n\n\t\tvalidateTimeNew(155243931, 267298804,1249930799, function() {\n\t\t\ttoadd(arguments);\n\t\t});\n\t}",
+  "questions": [
+    {
+      "inputs": [
+        {
+          "name": "answer406234657",
+          "id": "answer406234657",
+          "type": "hidden",
+          "value": "B",
+          "checked": false
+        },
+        {
+          "name": "answertype406234657",
+          "id": "answertype406234657",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234657  check_answer ",
+          "text": "B"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234653",
+          "id": "answer406234653",
+          "type": "hidden",
+          "value": "B",
+          "checked": false
+        },
+        {
+          "name": "answertype406234653",
+          "id": "answertype406234653",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234653  check_answer ",
+          "text": "B"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234651",
+          "id": "answer406234651",
+          "type": "hidden",
+          "value": "A",
+          "checked": false
+        },
+        {
+          "name": "answertype406234651",
+          "id": "answertype406234651",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234651  check_answer ",
+          "text": "A"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234652",
+          "id": "answer406234652",
+          "type": "hidden",
+          "value": "D",
+          "checked": false
+        },
+        {
+          "name": "answertype406234652",
+          "id": "answertype406234652",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "D\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234652  check_answer ",
+          "text": "D"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234650",
+          "id": "answer406234650",
+          "type": "hidden",
+          "value": "C",
+          "checked": false
+        },
+        {
+          "name": "answertype406234650",
+          "id": "answertype406234650",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "C\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234650  check_answer ",
+          "text": "C"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234658",
+          "id": "answer406234658",
+          "type": "hidden",
+          "value": "C",
+          "checked": false
+        },
+        {
+          "name": "answertype406234658",
+          "id": "answertype406234658",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "C\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234658  check_answer ",
+          "text": "C"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234656",
+          "id": "answer406234656",
+          "type": "hidden",
+          "value": "A",
+          "checked": false
+        },
+        {
+          "name": "answertype406234656",
+          "id": "answertype406234656",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234656  check_answer ",
+          "text": "A"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234654",
+          "id": "answer406234654",
+          "type": "hidden",
+          "value": "B",
+          "checked": false
+        },
+        {
+          "name": "answertype406234654",
+          "id": "answertype406234654",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234654  check_answer ",
+          "text": "B"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234648",
+          "id": "answer406234648",
+          "type": "hidden",
+          "value": "A",
+          "checked": false
+        },
+        {
+          "name": "answertype406234648",
+          "id": "answertype406234648",
+          "type": "hidden",
+          "value": "0",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234648  check_answer ",
+          "text": "A"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234665",
+          "id": "answer406234665",
+          "type": "hidden",
+          "value": "ACD",
+          "checked": false
+        },
+        {
+          "name": "answertype406234665",
+          "id": "answertype406234665",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "D\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234663",
+          "id": "answer406234663",
+          "type": "hidden",
+          "value": "ABC",
+          "checked": false
+        },
+        {
+          "name": "answertype406234663",
+          "id": "answertype406234663",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234666",
+          "id": "answer406234666",
+          "type": "hidden",
+          "value": "AC",
+          "checked": false
+        },
+        {
+          "name": "answertype406234666",
+          "id": "answertype406234666",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234661",
+          "id": "answer406234661",
+          "type": "hidden",
+          "value": "ABCD",
+          "checked": false
+        },
+        {
+          "name": "answertype406234661",
+          "id": "answertype406234661",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "D\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234667",
+          "id": "answer406234667",
+          "type": "hidden",
+          "value": "BC",
+          "checked": false
+        },
+        {
+          "name": "answertype406234667",
+          "id": "answertype406234667",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234662",
+          "id": "answer406234662",
+          "type": "hidden",
+          "value": "AC",
+          "checked": false
+        },
+        {
+          "name": "answertype406234662",
+          "id": "answertype406234662",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234660",
+          "id": "answer406234660",
+          "type": "hidden",
+          "value": "ACD",
+          "checked": false
+        },
+        {
+          "name": "answertype406234660",
+          "id": "answertype406234660",
+          "type": "hidden",
+          "value": "1",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "C\n                \n           "
+        },
+        {
+          "tag": "LI",
+          "className": "before-after-checkbox",
+          "text": "D\n                \n           "
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234668",
+          "id": "answer406234668",
+          "type": "hidden",
+          "value": "false",
+          "checked": false
+        },
+        {
+          "name": "answertype406234668",
+          "id": "answertype406234668",
+          "type": "hidden",
+          "value": "3",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "B\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234668  check_answer ",
+          "text": "B"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234670",
+          "id": "answer406234670",
+          "type": "hidden",
+          "value": "true",
+          "checked": false
+        },
+        {
+          "name": "answertype406234670",
+          "id": "answertype406234670",
+          "type": "hidden",
+          "value": "3",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234670  check_answer ",
+          "text": "A"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234673",
+          "id": "answer406234673",
+          "type": "hidden",
+          "value": "true",
+          "checked": false
+        },
+        {
+          "name": "answertype406234673",
+          "id": "answertype406234673",
+          "type": "hidden",
+          "value": "3",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234673  check_answer ",
+          "text": "A"
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "answer406234671",
+          "id": "answer406234671",
+          "type": "hidden",
+          "value": "true",
+          "checked": false
+        },
+        {
+          "name": "answertype406234671",
+          "id": "answertype406234671",
+          "type": "hidden",
+          "value": "3",
+          "checked": false
+        }
+      ],
+      "selected": [
+        {
+          "tag": "LI",
+          "className": "font-cxsecret before-after",
+          "text": "A\n                \n           "
+        },
+        {
+          "tag": "SPAN",
+          "className": "num_option choice406234671  check_answer ",
+          "text": "A"
+        }
+      ]
+    }
+  ],
+  "scripts": [
+    "\n    _HOST_ = \"//mooc1.chaoxing.com\";\n    _CP_ = \"/mooc-ans\";\n    _HOST_CP1_ = \"//mooc1.chaoxing.com/mooc-ans\";\n    // _HOST_CP2_ = _HOST_ + _CP_;\n    _HOST_CP2_ = _CP_;\n",
+    "\n\t\tvar isIpad=0;var downpath=\"\";\n\t",
+    "https://mooc-res2.chaoxing.com/mooc-ans/js/common/jquery.min.js",
+    "https://mooc-res2.chaoxing.com/mooc-ans/js/common/jquery-migrate.min.js",
+    "window.SUPPORT_AUDIO_SETTING = true; window.SUPPORT_AUDIO_CONTROL = true;",
+    "https://mooc1.chaoxing.com/mooc-ans/js/phone/textareaHeightAuto.js",
+    "https://mooc1.chaoxing.com/mooc-ans/space/new/js/right2.js?v=2023-0519-1411",
+    "https://mooc1.chaoxing.com/mooc-ans/static/js/domain.js",
+    "https://mooc-res2.chaoxing.com/mooc-ans/space/new/js/wayer_v1.2.mini.js",
+    "https://mooc1.chaoxing.com/mooc-ans/js/check_vercode.js",
+    "https://mooc1.chaoxing.com/ananas/space/exam/js/enc_js_work.js?v=1792837926911",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/selectBox.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/poptoast.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/poplayout.js?v=2023-0823-1500",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/workEnglishWriting.js?v=2024-0116-2000",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/fill-in-blank.js?v=2026-0717-1900",
+    "https://mooc1.chaoxing.com/mooc-ans/space/new/js/chosen.jquery.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/oraltest.js?v=2026-0806-1500",
+    "https://mooc1.chaoxing.com/mooc-ans/js/jquery.md5.js",
+    "https://mooc1.chaoxing.com/mooc-ans/space/work/js/viewer-jquery.min.js?v=2025-1128-1511",
+    "\ntry{\n\t$(function(){\n\t\tvar imgList = $(\".TiMu\").find(\"div img:not(.workAttach img, .attach img, .attachNew img, .stuAnswerArea img, .popClose img, .ans-formula-moudle, .no_view)\");\n\t\tfor (var i = 0, len = imgList.size(); i < len; i++) {\n\t\t\t var src = imgList.eq(i).attr(\"src\");\n\t\t\t if(src){\n    \t\t\tvar index = src.indexOf(\"375_1024\");\n    \t\t\tif (index != -1) {\n    \t\t\t\tsrc = src.replace(\"375_1024\", \"origin\");\n    \t\t\t}\n                 var index2 = src.indexOf(\"750_1024\");\n                 if (index2 != -1) {\n                     src = src.replace(\"750_1024\", \"origin\");\n                 }\n    \t\t\timgList.eq(i).attr(\"data-original\", src);\n\t\t   }\n\t\t}\n        $(\".TiMu\").find(\"div img:not(.workAttach img, .attach img, .attachNew img, .stuAnswerArea img, .popClose img, .no_view)\").viewer({\n\t\t\turl : 'data-original',\n\t\t});\n\t})\n  }catch(error){}\n",
+    "https://mooc1.chaoxing.com/mooc-ans/js/util/imgUtil.js?v=2025-1128-1100",
+    "https://mooc1.chaoxing.com/mooc-ans/space/work/js/attach-mark.js?v=2026-0807-1800",
+    "https://mooc1.chaoxing.com/mooc-ans/space/work/js/preview-attach.js?v=2023-1102-1900",
+    "https://mooc1.chaoxing.com/mooc-ans/js/jquery.nicescroll.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/animation-question.js?v=2024-0319-1800",
+    "https://mooc1.chaoxing.com/mooc-ans/js/work/work-audio-playtimes.js?v=2024-0104-1500",
+    "\n\tI18N_WORK = {\n\t\t\"cpResult\": \"测评结果\",\n\t\t\"ylch\": \"遗漏词汇\",\n\t\t\"zqdfx\": \"准确度分析\",\n\t\t\"tasktips1\": \"未达到及格线，请重做\",\n\t\t\"tasktips2\": \"未达到通过标准，请重做\",\n\t\t\"backdohereV2\": \"很遗憾，未达到及格线，请重做\"\n\t};\n",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/codemirror.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/clike.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/go.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/javascript.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/css.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/python.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/sql.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/xml.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/highlight.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/anyword-hint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/beautify.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/brace-fold.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/clike.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/closebrackets.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/closetag.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/comment-fold.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/foldcode.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/foldgutter.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/go.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/r.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/indent-fold.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/javascript.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/javascript-hint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/javascript-lint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/jshint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/lint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/matchbrackets.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/php.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/powershell.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/ruby.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/show-hint.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/swift.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/vb.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/xml.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/js/octave.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/js/jquery.jqote2.min.js",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/codemirror/codeEditor.js?v=2026-0902-1000",
+    "\n    window.noNeedCodemirrorInUeditor = true;\n\n    // 国际化\n    window.codeEditorMessages = {\n        codeCopied: '代码已复制',\n        replaceCodeConfirm: '教师已设置作答模板，是否确认替换当前代码？',\n        confirm: '确认',\n        cancel: '取消'\n    };\n",
+    "\n    <%\n    var currLanguageName = (this.currLanguageName && this.currLanguageName !== '请选择程序语言') ? this.currLanguageName : '请选择程序语言';\n    var currLanguageIndex = this.currLanguageIndex || -1;\n    var languages = this.languages;\n    var businessId = this.businessId;\n    %>\n\n    <!--弹窗-->\n    <div class=\"maskBox reset-mask\" data-business-id=\"<%= businessId %>\" style=\"display:none\">\n        <div class=\"promptPop\">\n            <div class=\"popHeadNew\">\n                <a href=\"javascript:void(0)\" class=\"popClose fr\" data-business-id=\"<%= businessId %>\"><img src=\"//mooc1.chaoxing.com/mooc-ans/images/popClose.png\"></a>\n                <p>提示</p>\n            </div>\n            <p class=\"popWord2\">代码框将重置为初始状态，正在编辑的代码将清空，确认重置代码？</p>\n            <div class=\"popBottomNew\">\n                <a href=\"javascript:void(0)\" class=\"popbtn_bg btnReset fr\" data-business-id=\"<%= businessId %>\">重置代码</a>\n                <a href=\"javascript:void(0)\" class=\"popbtn_border btnCancle fr\" data-business-id=\"<%= businessId %>\">取消</a>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"maskBox setting-mask\" data-business-id=\"<%= businessId %>\" style=\"display:none\">\n        <div class=\"promptPop\">\n            <div class=\"popHeadNew\">\n                <a href=\"javascript:void(0)\" class=\"popClose fr\" data-business-id=\"<%= businessId %>\"><img src=\"//mooc1.chaoxing.com/mooc-ans/images/popClose.png\"></a>\n                <p>代码编辑器设置</p>\n            </div>\n            <div class=\"popWord2\">\n                <div class=\"flex-start\">\n                    <span>字体设置</span>\n                    <strong class=\"selectBox fontList fontSizeChange\" data-business-id=\"<%= businessId %>\">\n                        <p value=\"0\"><span>14px</span><i class=\"icon-arrow-down2\"></i></p>\n                        <ul class=\"options optionsCon\" style=\"display:none\">\n                            <li><a href=\"javascript:;\">12px</a></li>\n                            <li><a href=\"javascript:;\">14px</a></li>\n                            <li><a href=\"javascript:;\">16px</a></li>\n                            <li><a href=\"javascript:;\">18px</a></li>\n                            <li><a href=\"javascript:;\">20px</a></li>\n                            <li><a href=\"javascript:;\">24px</a></li>\n                            <li><a href=\"javascript:;\">36px</a></li>\n                            <li><a href=\"javascript:;\">48px</a></li>\n                        </ul>\n                    </strong>\n                </div>\n            </div>\n            <div class=\"popBottomNew\">\n                <a href=\"javascript:void(0)\" class=\"popbtn_bg btnSetting fr\" data-business-id=\"<%= businessId %>\">确认</a>\n                <a href=\"javascript:void(0)\" class=\"popbtn_border btnCancle fr\" data-business-id=\"<%= businessId %>\">取消</a>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"mrconBx\" data-business-id=\"<%= businessId %>\">\n        <div class=\"mrconTop\">\n            <div>\n                <i class=\"icon-com fr setting\" data-business-id=\"<%= businessId %>\">\n                    <div class=\"Vector-pop\">\n                        <span>设置</span>\n                        <div class=\"triangle-container\">\n                            <div class=\"triangle\"></div>\n                        </div>\n                    </div>\n                </i>\n                <i class=\"icon-com fr copy\" data-business-id=\"<%= businessId %>\">\n                    <div class=\"Vector-pop\">\n                        <span>复制</span>\n                        <div class=\"triangle-container\">\n                            <div class=\"triangle\"></div>\n                        </div>\n                    </div>\n                </i>\n                <i class=\"icon-com fr refresh\" data-business-id=\"<%= businessId %>\">\n                    <div class=\"Vector-pop\">\n                        <span>重置</span>\n                        <div class=\"triangle-container\">\n                            <div class=\"triangle\"></div>\n                        </div>\n                    </div>\n                </i>\n                <i class=\"icon-com fr format\" data-business-id=\"<%= businessId %>\">\n                    <div class=\"Vector-pop\">\n                        <span>格式化</span>\n                        <div class=\"triangle-container\">\n                            <div class=\"triangle\"></div>\n                        </div>\n                    </div>\n                </i>\n\n                <% if(currLanguageIndex!== -1) { %>\n                <!--mooc2创建的程序题-->\n                <strong class=\"selectBoxLang fl langList\" codenum=\"<%= currLanguageIndex %>\" codename=\"<%= currLanguageName %>\" data-business-id=\"<%= businessId %>\">\n                    <p value=\"0\"><span><%= currLanguageName %></span><i class=\"icon-arrow-down2\"></i></p>\n                    <ul class=\"options \" style=\"display:none\">\n                        <% for(var pair of languages) { %>\n                        <li>\n                            <a href=\"javascript:void(0)\" codename=\"<%= pair.codeName %>\" code=\"<%= pair.code %>\" codenum=\"<%= pair.codenum %>\"><%= pair.codeName %></a>\n                            <% if (pair.codenum == '16') { %>\n                                 <span class=\"language_icon\" onclick=\"$('#phytonTipBox').show();event.stopPropagation();\"></span>\n                            <% } else if (pair.codenum == '1') { %>\n                                 <span class=\"language_icon\" onclick=\"$('#cTipBox').show();event.stopPropagation();\"></span>\n                            <% } else if (pair.codenum == '22') { %>\n                                 <span class=\"language_icon\" onclick=\"$('#phyton312TipBox').show();event.stopPropagation();\"></span>\n                            <% } %>\n                        </li>\n                        <% } %>\n                    </ul>\n                </strong>\n                <% } else { %>\n                <!--mooc1创建的程序题 || 新建的程序题-->\n                <strong class=\"selectBoxLang fl langList\" data-business-id=\"<%= businessId %>\">\n                    <p value=\"0\"><span>请选择程序语言</span><i class=\"icon-arrow-down2\"></i></p>\n                    <ul class=\"options \" style=\"display:none\">\n                        <% for(var pair of languages) { %>\n                        <li>\n                            <a href=\"javascript:void(0)\" codename=\"<%= pair.codeName %>\" code=\"<%= pair.code %>\" codenum=\"<%= pair.codenum %>\"><%= pair.codeName %></a>\n                            <% if (pair.codenum == '16') { %>\n                                  <span class=\"language_icon\" onclick=\"$('#phytonTipBox').show();event.stopPropagation();\"></span>\n                            <% } else if (pair.codenum == '1') { %>\n                                  <span class=\"language_icon\" onclick=\"$('#cTipBox').show();event.stopPropagation();\"></span>\n                            <% } else if (pair.codenum == '22') { %>\n                                  <span class=\"language_icon\" onclick=\"$('#phyton312TipBox').show();event.stopPropagation();\"></span>\n                            <% } %>\n                        </li>\n                        <% } %>\n                    </ul>\n                </strong>\n                <% } %>\n\n                <p class=\"clear\"></p>\n            </div>\n        </div>\n    </div>\n\n\n",
+    "\n\t\tfunction myEditor_paste(o, html) {\n\t\t\thtml.html = \"\";\n\t\t\talert('只能录入不能粘贴!');\n\t\t}\n\t",
+    "\n\t\t$(function(){\n\t\t\t$('.dept_select').chosen({\n\t\t\t\t\"disable_search\": true\n\t\t\t});\n\n\t\t});\n\t",
+    "https://mooc1.chaoxing.com/mooc-ans/js/ServerHost.js?v=2020-1225-1627",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/editor/ueditor.config.js?v=2025-0904-2027",
+    "https://mooc1.chaoxing.com/mooc-ans/mooc2/js/editor/ueditor.all.min.js?v=2026-0921-1215",
+    "\n    function getcookie(objname){\n    \tvar arrstr = document.cookie.split(\"; \");\n    \tfor(var i = 0;i < arrstr.length;i ++){\n    \t\tvar temp = arrstr[i].split(\"=\");\n    \t\tif(temp[0] == objname){ \n    \t\t\treturn unescape(temp[1]);\n    \t\t}\n    \t}\n    }\n\n\t\twindow[\"uid\"] = '421195020';\n\twindow[\"currentTime\"] = '1792837926909';\n\twindow[\"uploadEnc\"] = '8cdbe4b2f5ca47af8aad9b9a294548ac';\n\twindow[\"uploadType\"] = 'work';\n\twindow.UEDITOR_CONFIG.forbidDownload = 'false';\n\twindow.UEDITOR_CONFIG.scaleEnabled = false;\n\twindow.UEDITOR_CONFIG.imageUrl = ServerHost.uploadDomain + \"/ueditorupload/upload?t=1792837926909&enc2=8cdbe4b2f5ca47af8aad9b9a294548ac&uid=421195020&uploadtype=work\";\n\twindow.UEDITOR_CONFIG.fileUrl = ServerHost.uploadDomain + \"/ueditorupload/attachment?uploadtype=work\";\n\twindow.UEDITOR_CONFIG.lang = 'zh-cn';\n\twindow.fycourseDomain = \"mobile3.chaoxing.com\";\n\n\tvar isMirror = \"false\";\n\tif (isMirror == \"true\") {\n\t\twindow.UEDITOR_CONFIG.toolbars = [['removeformat', 'formatmatch', 'paragraph', 'fontfamily', 'fontsize', 'bold', 'italic', 'underline', 'forecolor', 'justifyleft', 'justifycenter', 'justifyright', 'spechars', 'inserttable', 'mathml', 'edrawmath', 'insertimage', 'attachment_new', 'recording', 'audio', 'drawingboard', 'insertcodedefined']];\n\t}\n\n\t    \tvar toolbars = window.UEDITOR_CONFIG.toolbars[0];\n\t\tif($.inArray('mathml', toolbars) >= 0){\n            toolbars.splice($.inArray('mathml', toolbars) , 1,'latex');\n            window.UEDITOR_CONFIG.toolbars[0] = toolbars;\n            window.UEDITOR_CONFIG.latexMode = 1;\n\t\t}\n\t\n\t\t    window.UEDITOR_CONFIG._mathpix2latex = '267298804-155243931-508143193-s_711520988ff31aeae84810c3439a05a5';\n\t\n\t\n\t\n\t\t\tvar toolBars = window.UEDITOR_CONFIG.toolbars[0];\n\tvar moudesArray = \"\".split(\",\");\n\tfor (var toolIndex = toolBars.length - 1; toolIndex >= 0; toolIndex--) {\n\t\tif (moudesArray.indexOf(toolBars[toolIndex]) !== -1) {\n\t\t\ttoolBars.splice(toolIndex, 1);\n\t\t}\n\t}\n\t\n\t\n",
+    "\n\t\t\tvar allowPaste = \"1\";\n\t\t\tif(allowPaste == 1){\n\t\t\t\twindow.UEDITOR_CONFIG.disableDraggable = true;\n\t\t\t\twindow.UEDITOR_CONFIG.disablePasteImage = true;\n\t\t\t}\n\t\t",
+    "\n\t\twindow.UEDITOR_CONFIG.pasteplain = true;\n\t\twindow.UEDITOR_CONFIG.wordMinManage='最少'+' {#minword} '+'字';\n\t\twindow.UEDITOR_CONFIG.wordMaxManage='最多'+' {#maxword} '+'字';\n\t\twindow.UEDITOR_CONFIG.wordManage='已输入'+' {#count} '+'字';\n\t\twindow.UEDITOR_CONFIG.wordOverFlowMsg='<span style=\"color:red;margin-bottom:0;line-height:25px;\">'+ '已超出'+' {#overs} '+'字' +'</span>';\n\t\twindow.UEDITOR_CONFIG.wordNeedFlowMsg='<span style=\"color:red;margin-bottom:0;line-height:25px;\">'+ '还需输入'+' {#needs} '+'字' +'</span>';\n\t",
+    "\nfunction popClickFunc() {\n\t$('#workpop').hide();\n\tif($('.popSetupShowHide').length > 0){\n\t\t$('.popSetupShowHide').fullFadeOut();\n\t}\n}\n\nfunction toastClickFunc() {\n\t$('#worktoast').hide();\n\tif($('.popSetupShowHide').length > 0){\n\t\t$('.popSetupShowHide').fullFadeOut();\n\t}\n}\n\n\nfunction workPop(content, okTent, cancelTent, okcallback, cancelCallback) {\n\tvar ta = $(\"#workpop\");\n\n\tif($('.popSetupShowHide').length > 0){\n\t\t$(\".popSetupShowHide\").fullFadeIn();\n\t}\n\n\tta.show();\n\t\n\t$(\"#popcontent\").html(content);\n\tvar popokHiddenRead = $(\"#popokHiddenRead\");\n\n\tvar ok = $(\"#popok\");\n\tok.html(okTent);\n\tok.unbind();\n\tok.on(\"click\", function() {\n\t\t// 无障碍单位走定制,延迟语音读取处理\n\t\tif(\"0\" == \"1\") {\n\t\t\tpopokHiddenRead.attr(\"tabindex\",\"0\");\n\t\t\tif (content && content != '很遗憾，未达到及格线，请重做') {\n\t\t\t\tpopokHiddenRead.focus();\n\t\t\t}\n\t\t\tsetTimeout(function() {\n\t\t\t\tokcallback && okcallback(ta);\n\t\t\t\tpopokHiddenRead.attr(\"tabindex\",\"-1\")\n\t\t\t\tta.hide();\n\t\t\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t\t\t}\n\t\t\t}, 1000)\n\t\t} else {\n\t\t\tokcallback && okcallback(ta);\n\t\t\tta.hide();\n\n\t\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t\t}\n\t\t}\n\t});\n\n\tvar cancel = $(\"#popno\");\n\tcancel.html(cancelTent);\n\tcancel.unbind();\n\tcancel.on(\"click\", function() {\n\t\tcancelCallback && cancelCallback(ta);\n\t\tta.hide();\n\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t}\n\t});\n\tif(\"0\" == \"1\") {\n\t\t$(\"#workpopFocus\").focus();\n\t}\n}\n\nfunction workToast(content, okTent, cancelTent, okcallback, cancelCallback) {\n\tvar ta = $(\"#worktoast\");\n\n\tif($('.popSetupShowHide').length > 0) {\n\t\t$(\".popSetupShowHide\").fullFadeIn();\n\t}\n\n\tta.show();\n\n\t$(\"#toastcontent\").html(content);\n\n\tvar ok = $(\"#toastok\");\n\tok.html(okTent);\n\tok.unbind();\n\tok.on(\"click\", function() {\n\t\tokcallback && okcallback(ta);\n\t\tta.hide();\n\n\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t}\n\t});\n\n\tvar cancel = $(\"#toastno\");\n\tcancel.html(cancelTent);\n\tcancel.unbind();\n\tcancel.on(\"click\", function() {\n\t\tcancelCallback && cancelCallback(ta);\n\t\tta.hide();\n\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t}\n\t});\n}\n\nfunction workHint(content, okTent, okcallback) {\n\tvar ta = $(\"#hintPop\");\n\n\tif($('.popSetupShowHide').length > 0) {\n\t\t$(\".popSetupShowHide\").fullFadeIn();\n\t}\n\n\tta.show();\n\n\t$(\"#hintCon\").html(content);\n\n\tvar ok = $(\"#hintOk\");\n\tok.html(okTent);\n\tok.unbind();\n\tok.on(\"click\", function() {\n\t\tokcallback && okcallback(ta);\n\t\tta.hide();\n\n\t\tif($('.popSetupShowHide').length > 0) {\n\t\t\t$(\".popSetupShowHide\").fullFadeOut();\n\t\t}\n\t});\n}\n\nfunction popFocus() {\n\tif(\"0\" != \"1\") {\n\t\treturn;\n\t}\n\t$(\"#popCloseFocusImg\").attr(\"tabindex\",\"0\");\n\t$(\"#popCloseFocus\").focus();\n}\nfunction popCloseFocus() {\n\tif(\"0\" != \"1\") {\n\t\treturn;\n\t}\n\t$('#workpop').hide();\n\tif($('.popSetupShowHide').length > 0) {\n\t\t$('.popSetupShowHide').fullFadeOut();\n\t}\n\t$(\"#popCloseFocusImg\").attr(\"tabindex\",\"-1\");\n}\nfunction popnoFocus() {\n\tif(\"0\" != \"1\") {\n\t\treturn;\n\t}\n\tif(event.keyCode == 9){\n\t\tpopFocus();\n\t}\n\tif(event.keyCode == 13){\n\t\t$(\"#popCloseFocusImg\").attr(\"tabindex\",\"-1\");\n\t}\n}\n\n",
+    "\n\n    function proceduralCodePreview(questionId) {\n        var editor = codeEditors[questionId];\n        var pureTxt = editor.getValue();\n        var code = pureTxt;\n        code = UE.utils.html(code);\n        if(top && top.previewHtmlPage){\n            top.previewHtmlPage(code);\n        }else if(parent && parent.parent && parent.parent.parent && parent.parent.parent.previewHtmlPage){\n            parent.parent.parent.previewHtmlPage(code);\n        }else {\n            previewHtmlPage(code);\n        }\n    }\n\n    function previewHtmlPage(code) {\n        var renderTarget = document.querySelector('.preview-render-div');\n        if (!renderTarget) {\n            return;\n        }\n        renderTarget.innerHTML = '';\n\n        var iframe = document.createElement('iframe');\n        iframe.setAttribute('sandbox', 'allow-scripts');\n        iframe.style.width = '100%';\n        iframe.style.height = '600px';\n        iframe.style.border = 'none';\n        iframe.style.borderRadius = '8px';\n        iframe.style.background = 'white';\n        iframe.style.display = 'block';\n\n        iframe.srcdoc =\n                '<meta ' +\n                'http-equiv=\"Content-Security-Policy\" ' +\n                'content=\"' +\n                'default-src \\'none\\'; ' +\n                'script-src \\'unsafe-inline\\'; ' +\n                'style-src \\'unsafe-inline\\'; ' +\n                'img-src data:; ' +\n                'connect-src \\'none\\'; ' +\n                'frame-src \\'none\\'; ' +\n                'object-src \\'none\\'; ' +\n                'form-action \\'none\\';' +\n                '\"/>' +\n                '<script>' +\n                'window.alert=function(){};' +\n                'window.confirm=function(){return false;};' +\n                'window.prompt=function(){return null;};' +\n                'window.open=function(){return null;};' +\n                '</scr' + 'ipt>' +\n                code;\n        renderTarget.appendChild(iframe);\n        var previewDialog = renderTarget.closest('.preview-dialog');\n        if (previewDialog) {\n            previewDialog.style.display = 'block';\n        }\n    }\n\n    function closeHtmlPage() {\n        $('.preview-dialog').hide();\n    }\n",
+    "\n\t$(function(){\n\t\t\n\t\t$('textarea.runResult').autoHeight();\n\t});\n\n\tfunction hideWindow() {\n\t\t$(\"#confirmSubWin\").css(\"display\",\"none\");\n\t\t$(\".mask\").css(\"display\",\"none\");\n\t\t$(\"#closeFoucsButton\").attr(\"tabindex\",\"-1\");\n\t}\n\n\tvar submitLock = 0;\n\tfunction form1submit() {\n\t\tconfirmSubmitWork();\n\t}\n\tfunction confirmSubmitWork(){\n\t\tif (submitLock != 0) {\n\t\t\treturn false;\n\t\t}\n\t\tsubmitLock = 1;\n\n\t\tif (typeof updateAllFillinBlanksData === 'function') {\n\t\t\tupdateAllFillinBlanksData();\n\t\t}\n\t\tvar ajax_url = version(document.form1.action);\n\t\tvar ajax_type = $(\"#form1\").attr(\"method\");\n\t\tvar ajax_data = $(\"#form1\").serialize();\n\n\t\t$.ajax({\n\t\t\ttype : ajax_type,\n\t\t\turl : ajax_url,\n\t\t\tdata : ajax_data,\n\t\t\tdataType : \"json\",\n\t\t\tsuccess : function(data) {\n\t\t\t\tif ( !data.status) {\n\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t}\n\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\tcontent : data.msg,\n\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t});\n\t\t\t\t\t}else {\n\t\t\t\t\t\talert(data.msg);\n\t\t\t\t\t}\n\n\t\t\t\t\twindow.location.reload();\n\t\t\t\t\treturn false;\n\t\t\t\t}\n\n\t\t\t\tif (data.stuStatus == 5) {\n\t\t\t\t\tvar taskTips = I18N_WORK.tasktips1;\n\t\t\t\t\tif($(\"#taskTipsNew\").val() == '1'){\n\t\t\t\t\t\ttaskTips = I18N_WORK.tasktips2;\n\t\t\t\t\t}\n\t\t\t\t\tif(top && top.workPop){\n\t\t\t\t\t\ttop.workPop(taskTips, \"确定\", \"取消\",function() {window.location.href = data.backUrl;},function() {window.location.href = data.url;}\n\t\t\t\t\t\t);\n\t\t\t\t\t}else {\n\t\t\t\t\t\tworkPop(taskTips, \"确定\", \"取消\",function() {window.location.href = data.backUrl;},function() {window.location.href = data.url;}\n\t\t\t\t\t\t);\n\t\t\t\t\t}\n\t\t\t\t} else {\n\t\t\t\t\twindow.location.href = data.url;\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\t}\n\tfunction version(url) {\n\t\tvar pos = \"\";\n\t\ttry {\n\t\t\tpos = getEnc();\n\t\t} catch (e) {}\n\n\t\turl += '&ua=' + clientType();\n\t\turl += '&formType=' + getformType();\n\t\turl += '&saveStatus=' + 1;\n\t\turl += '&pos=' + pos;\n\n\t\tvar re = /&version=(\\d+)/;\n\t\tvar version = 1;\n\t\tif (re.test(url)) {\n\t\t\tvar arr = re.exec(url);\n\t\t\tversion += parseInt(arr[1]);\n\t\t\turl = url.replace(re, '&version=' + version);\n\t\t} else {\n\t\t\turl = url + '&version=1';\n\t\t}\n\t\treturn url;\n\t}\n\tvar reqLimit = 30;\n\tfunction btnBlueSubmit() {\n\t\tif(reqLimit < 0){\n\t\t\tvar submitOffsetTop = 0;\n\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t}\n\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t$.toast({\n\t\t\t\t\ttype : 'failure',\n\t\t\t\t\tcontent : \"请刷新页面后重试\",\n\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t});\n\t\t\t}else {\n\t\t\t\talert(\"请刷新页面后重试\");\n\t\t\t}\n\t\t\treturn ;\n\t\t}\n\t\treqLimit--;\n\n\t\tvalidateTimeNew(155243931, 267298804,1249930799, function() {\n\t\t\ttoadd(arguments);\n\t\t});\n\t}\n\n\tfunction validateTimeNew(classId, courseId,knowledgeId, callback) {\n\t\t$.ajax({\n\t\t\ttype : \"GET\",\n\t\t\turl : _HOST_CP2_ + \"/work/validate\",\n\t\t\tcache : false,\n\t\t\tdata : {\n\t\t\t\tclassId : classId,\n\t\t\t\tcourseId : courseId,\n\t\t\t\tknowledgeId : knowledgeId,\n\t\t\t\tcpi : \"508143193\"\n\t\t\t},\n\t\t\tsuccess : function(data) {\n\t\t\t\treqLimit++;\n\t\t\t\tif (data.status == 1) {\n\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t}\n\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\tcontent : \"账号发生异常，请重新登录！\",\n\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t});\n\t\t\t\t\t}else {\n\t\t\t\t\t\talert(\"账号发生异常，请重新登录！\");\n\t\t\t\t\t}\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tif (data.status == 2) {\n\t\t\t\t\t// 弹出验证码\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tcallback && callback('', '');\n\t\t\t\t}\n\t\t\t\tif (data.status == 3) {\n\t\t\t\t\tcallback && callback('', '');\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\t}\n\n\tfunction toadd(enc){\n\t\t$(\"#enc\").val(arguments[0][0]);\n\t\t$(\"#pyFlag\").val(\"\");\n\t\tvar a = \"406234657,406234653,406234651,406234652,406234650,406234658,406234656,406234654,406234648,406234665,406234663,406234666,406234661,406234667,406234662,406234660,406234668,406234670,406234673,406234671,\";\n\t\t$(\"#answerwqbid\").val(a);\n\t\tvar jiandaId = \"\";\n\t\tvar wordNum = \"\";\n\t\tvar flagAnswer = true;\n\t\tif(parseInt(wordNum) > 0) {\n\t\t\tif(jiandaId != \"\") {\n\t\t\t\tvar jiandaIdArr = jiandaId.split(\",\");\n\t\t\t\tfor(var i=0;i<jiandaIdArr.length;i++) {\n\t\t\t\t\tvar temp = $(\"#answer\" + jiandaIdArr[i]).val();\n\t\t\t\t\tif((wordNum != \"\" && removeAllSpace(temp, i).length < parseInt(wordNum)) || (wordNum != \"\" && removeAllSpace(temp, i) == \"\")) {\n\t\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\tcontent : \"您最少输入\" + wordNum + \"个字\",\n\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t});\n\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\talert(\"您最少输入\" + wordNum + \"个字\");\n\t\t\t\t\t\t}\n\t\t\t\t\t\tflagAnswer = false;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tif(!flagAnswer) {\n\t\t\treturn;\n\t\t}\n\t\tsetClozeTextAnswers();\n\t\tsetConnLineAnswer();\n\t\tsetSortQuesAnswer();\n\t\tsetAllClozeAnswer();\n\t\tsetReadComprehensionAnswer();\n\t\tsetProceduralAnswer();\n\t\tif (typeof updateAllFillinBlanksData === 'function') {\n\t\t\tupdateAllFillinBlanksData();\n\t\t}\n\t\t// setBType();\n\n\t\tvar questionIds = a.split(\",\");\n\t\tvar flag = false;\n\t\tvar tipStr = \"\";\n\t\tvar isAccessibleCustomFid = \"0\";\n\t\tfor (var i = 0; i < questionIds.length - 1; i++) {\n\t\t\tvar id = questionIds[i];\n\t\t\tvar type = $(\"#answertype\" + id).val();\n\t\t\tvar subject = $(\"#answer\" + id).attr(\"subject\") || 0;\n\t\t\tvar grade = $(\"#answer\" + id).attr(\"grade\") || \"\";\n\t\t\tvar isCollegeWriting = subject == 1 && grade ==\"十三\";\n\t\t\tif ([4, 5, 6, 7, 8, 18, 26].indexOf(Number(type)) >= 0 && !isCollegeWriting) {\n\t\t\t\tif (type == \"26\") {\n\t\t\t\t\ttry {\n\t\t\t\t\t\tvar questionContent = $(\"#answer\" + id).val();\n\t\t\t\t\t\tvar count = UE.Editor.prototype.pureWordCount(questionContent);\n\t\t\t\t\t\tvar minWordCount = $(\"#answer\" + id).attr(\"wordminnum\") || 0;\n\t\t\t\t\t\tvar maxWordCount = $(\"#answer\" + id).attr(\"wordmaxnum\") || 0;\n\n\t\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tif (maxWordCount > 0 && count > maxWordCount) {\n\t\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\t\tcontent : '答案超过教师限制字数，请限定在 ' + maxWordCount + ' 字以内',\n\t\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\t\talert('答案超过教师限制字数，请限定在 ' + maxWordCount + ' 字以内');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (minWordCount > 0 && minWordCount > count) {\n\t\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\t\tcontent : '答案字数未达到教师设置的最少字数要求，最少需输入 ' + minWordCount + ' 字',\n\t\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\t\talert('答案字数未达到教师设置的最少字数要求，最少需输入 ' + minWordCount + ' 字');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t} catch (exception) {\n\t\t\t\t\t}\n\t\t\t\t\tcontinue;\n\t\t\t\t}\n\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tvar editorAnswer;\n\t\t\t\ttry {\n\t\t\t\t\tif (isAccessibleCustomFid == \"1\"){\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tvar optEditor = UE.getEditor(\"answer\" + id);\n\t\t\t\t\tif (optEditor != null) {\n\t\t\t\t\t\teditorAnswer = optEditor.getContent();\n\t\t\t\t\t\tmaxWordCount = optEditor.options.maximumWords;\n\t\t\t\t\t\tminWordCount = optEditor.options.minimumWords;\n\t\t\t\t\t\tvar count = optEditor.pureWordCount();\n\t\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (maxWordCount > 0 && count > maxWordCount) {\n\t\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\t\tcontent : '答案超过教师限制字数，请限定在 ' + maxWordCount + ' 字以内',\n\t\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\t\talert('答案超过教师限制字数，请限定在 ' + maxWordCount + ' 字以内');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (minWordCount > 0 && minWordCount > count) {\n\t\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\t\tcontent : '答案字数未达到教师设置的最少字数要求，最少需输入 ' + minWordCount + ' 字',\n\t\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\t\talert('答案字数未达到教师设置的最少字数要求，最少需输入 ' + minWordCount + ' 字');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif(typeof(editorAnswer) != \"undefined\" && editorAnswer.length>65535){\n\t\t\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\t\t\tcontent : '提交失败，简答题字数超出范围！',\n\t\t\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}else {\n\t\t\t\t\t\t\t\talert('提交失败，简答题字数超出范围！');\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t} catch(exception) {}\n\t\t\t}\n\t\t}\n\t\tfor(var i=0;i<questionIds.length - 1;i++) {\n\t\t\tvar id = questionIds[i];\n\t\t\tvar type = $(\"#answertype\" + id).val();\n\t\t\tvar subject = $(\"#answer\" + id).attr(\"subject\") || 0;\n\t\t\tvar grade = $(\"#answer\" + id).attr(\"grade\") || \"\";\n\t\t\tvar isCollegeWriting = subject == 1 && grade ==\"十三\";\n\t\t\tif(type == \"0\") {\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"单选题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"1\") {\n\t\t\t\t//多选\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"多选题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}else if (type == \"11\" || type == \"20\") {     //连线题\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || answer.length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"连线题\";\n\t\t\t\t\tif (type == \"20\") {\n\t\t\t\t\t\ttipStr = \"共用选项题\";\n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\t}else {\n\t\t\t\t\tvar answer_array = JSON.parse(answer);\n\t\t\t\t\tfor (var index in answer_array) {\n\t\t\t\t\t\tvar content = answer_array[index].content;\n\t\t\t\t\t\tif (!content || content == \"\" || content.length == 0) {\n\t\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\t\ttipStr = \"连线题\";\n\t\t\t\t\t\t\tif (type == \"20\") {\n\t\t\t\t\t\t\t\ttipStr = \"共用选项题\";\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tif (flag) {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}else if(type == \"12\") {\n\t\t\t\t//投票题\n\t\t\t\tvar answer = $(\"#answer\" + id).val()||$(\"input:radio[name=answer\"+id+\"]:checked\").val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"投票题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}else if(type == \"13\") {\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"排序题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}else if (type == \"14\" || type == \"15\" || type == \"16\" || type == \"19\") {  //新完型填空、新阅读理解\n\t\t\t\tvar typeTip=\"完型填空\";\n\t\t\t\tif(type == \"15\") {\n\t\t\t\t\ttypeTip=\"阅读理解\";\n\t\t\t\t}\n\t\t\t\tif(type == \"16\") {\n\t\t\t\t\ttypeTip=\"综合题\";\n\t\t\t\t}\n\t\t\t\tif(type == \"19\") {\n\t\t\t\t\ttypeTip=\"听力题\";\n\t\t\t\t}\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tvar answer_array= JSON.parse(answer);\n\t\t\t\tvar answerContent=answer_array[0];\n\t\t\t\tfor(var key in answerContent){\n\t\t\t\t\tvar content=answerContent[key];\n\t\t\t\t\tvar answerStr=content.answer;\n\t\t\t\t\tvar innerType=content.type;\n\t\t\t\t\tif(innerType&&innerType==2){\n\t\t\t\t\t\tfor(var index in answerStr){\n\t\t\t\t\t\t\tvar item=answerStr[index];\n\t\t\t\t\t\t\tvar content=item.content;\n\t\t\t\t\t\t\tif(content==\"\"||content.length==0){\n\t\t\t\t\t\t\t\tflag=true;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tif(innerType==3){\n\t\t\t\t\t\tanswerStr=answerStr.toString();\n\t\t\t\t\t}\n\t\t\t\t\tif(flag||answerStr==\"\"||answerStr.length==0){\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tif(flag){\n\t\t\t\t\ttipStr = typeTip;\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}  else if (type == \"17\") {\n\t\t\t\ttry {\n\t\t\t\t\tvar language=$(\"#procedural-\"+id+\" .languageSelect\").val();\n\t\t\t\t\tif(language == \"-1\"){\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\ttipStr = \"程序题\";\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tvar editor = UE.getEditor(\"textarea\" + id);\n\t\t\t\t\tvar pureTxt=editor && editor.getContentTxt();\n\t\t\t\t\tif(pureTxt.length == 0 || pureTxt == \"\"){\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\ttipStr = \"程序题\";\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t} catch(exception) {}\n\t\t\t} else if(type == \"2\" || type == \"9\" || type == \"10\") {\n\t\t\t\t//填空\n\t\t\t\tvar blankNum = $(\"input[name=tiankongsize\"+id+\"]\").val();\n\t\t\t\tvar tem = false;\n\t\t\t\tfor(var j=1;j<=parseInt(blankNum);j++) {\n\t\t\t\t\tvar answer;\n\t\t\t\t\ttry {\n\t\t\t\t\t\tvar optEditor = null;\n\t\t\t\t\t\tif (isAccessibleCustomFid != \"1\"){\n\t\t\t\t\t\t\toptEditor = UE.getEditor(\"answerEditor\" + id + j);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (optEditor != null) {\n\t\t\t\t\t\t\tanswer = optEditor.getContent();\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (isAccessibleCustomFid == \"1\"){\n\t\t\t\t\t\t\tanswer = $(\"#answerEditor\" + id + j).val();\n\t\t\t\t\t\t}\n\t\t\t\t\t} catch (exception) {}\n\t\t\t\t\tif(typeof(answer) != \"undefined\"  && removeAllSpace(answer).length != 0) {\n\t\t\t\t\t\ttem = true;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tif(!tem) {\n\t\t\t\t\tif(type == \"2\"){\n\t\t\t\t\t\ttipStr = \"填空题\";\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tif(type == \"9\"){\n\t\t\t\t\t\ttipStr = \"分录题\";\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tif(type == \"10\"){\n\t\t\t\t\t\ttipStr = \"资料题\";\n\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t} else if(type == \"3\") {\n\t\t\t\t//判断\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"判断题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if (type == \"22\"){\n\t\t\t\tvar objectid = $(\"#answer\" + id).attr(\"objectid\");\n\t\t\t\tif ( typeof (objectid) == \"undefined\" || removeAllSpace(objectid).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"口语测评题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if (type == \"24\") {\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\tif (typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"选词填空\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t\ttry {\n\t\t\t\t\tvar answerArr = JSON.parse(answer);\n\t\t\t\t\tfor (var j = 0; j < answerArr.length; j++) {\n\t\t\t\t\t\tif (!answerArr[j].content || answerArr[j].content == \"\") {\n\t\t\t\t\t\t\tflag = true;\n\t\t\t\t\t\t\ttipStr = \"选词填空\";\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t} catch(e) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"选词填空\";\n\t\t\t\t}\n\t\t\t\tif (flag) {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"4\" || type == \"18\" || (type == \"26\" && isCollegeWriting)){\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\ttry{\n\t\t\t\t\tvar optEditor = null;\n\t\t\t\t\tif (isAccessibleCustomFid != \"1\"){\n\t\t\t\t\t\toptEditor = UE.getEditor(\"answer\"+ id);\n\t\t\t\t\t}\n\t\t\t\t\tif(optEditor != null){\n\t\t\t\t\t\tanswer = UE.getEditor(\"answer\"+ id).getContent();\n\t\t\t\t\t}\n\t\t\t\t}catch(exception){\n\t\t\t\t}\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\tif(type == \"18\"){\n\t\t\t\t\t\ttipStr = \"口语题\";\n\t\t\t\t\t} else if(type == \"26\") {\n\t\t\t\t\t\ttipStr = \"写作题\";\n\t\t\t\t\t} else {\n\t\t\t\t\t\ttipStr = \"简答题\";\n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"5\"){\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\ttry{\n\t\t\t\t\tvar optEditor = UE.getEditor(\"answer\"+ id);\n\t\t\t\t\tif(optEditor != null){\n\t\t\t\t\t\tanswer = UE.getEditor(\"answer\"+ id).getContent();\n\t\t\t\t\t}\n\t\t\t\t}catch(exception){\n\t\t\t\t}\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"名词解释\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"6\"){\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\ttry{\n\t\t\t\t\tvar optEditor = UE.getEditor(\"answer\"+ id);\n\t\t\t\t\tif(optEditor != null){\n\t\t\t\t\t\tanswer = UE.getEditor(\"answer\"+ id).getContent();\n\t\t\t\t\t}\n\t\t\t\t}catch(exception){\n\t\t\t\t}\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"论述题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"7\"){\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\ttry{\n\t\t\t\t\tvar optEditor = UE.getEditor(\"answer\"+ id);\n\t\t\t\t\tif(optEditor != null){\n\t\t\t\t\t\tanswer = UE.getEditor(\"answer\"+ id).getContent();\n\t\t\t\t\t}\n\t\t\t\t}catch(exception){\n\t\t\t\t}\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"计算题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else if(type == \"26\" && !isCollegeWriting){\n\t\t\t\tvar questionContent = $(\"#answer\" + id).val();\n\t\t\t\tvar count = UE.Editor.prototype.pureWordCount(questionContent);\n\t\t\t\tif (count == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"写作题\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t} else {\n\t\t\t\tvar answer = $(\"#answer\" + id).val();\n\t\t\t\ttry{\n\t\t\t\t\tvar optEditor = UE.getEditor(\"answer\"+ id);\n\t\t\t\t\tif(optEditor != null){\n\t\t\t\t\t\tanswer = UE.getEditor(\"answer\"+ id).getContent();\n\t\t\t\t\t}\n\t\t\t\t}catch(exception){\n\t\t\t\t}\n\t\t\t\tif(typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\t\tflag = true;\n\t\t\t\t\ttipStr = \"其它\";\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\tif (flag && '0' == '1') {\n\t\t\tvar submitOffsetTop = 0;\n\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t}\n\t\t\tvar submitTips = \"教师设置了作答完才能提交，你还有 \" + tipStr + \" 未答，请完成作答 \";\n\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t$.toast({\n\t\t\t\t\ttype : 'failure',\n\t\t\t\t\tcontent : submitTips,\n\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t});\n\t\t\t}else {\n\t\t\t\talert(submitTips);\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\n\t\tvar showTips = \"确认提交？\";\n\t\tif (flag) {\n\t\t\tshowTips = \"您还有未做完的 \" + tipStr + \" ，确认提交吗？\";\n\t\t}\n\t\tif(top && top.workPop){\n\t\t\ttop.workPop(showTips, \"提交\", \"取消\", function() {\n\t\t\t\tsubmitCheckTimes();\n\t\t\t});\n\t\t}else {\n\t\t\tworkPop(showTips, \"提交\", \"取消\", function() {\n\t\t\t\tsubmitCheckTimes();\n\t\t\t});\n\t\t}\n\t}\n\n\tfunction removeAllSpace(str, value) {\n\t\treturn str.replace(/<\\s?img[^>]*>/gi, \"图片\").replace(/<\\s?iframe[^>]*>/gi, \"录音\").replace(/<[^>]+>/g, \"\").replace(/&nbsp;/ig, \"\").replace(/\\s+/g, \"\");\n\t}\n\n\tvar tempSave=false;\n\tfunction noSubmit(){\n\t\tif(tempSave){\n\t\t\treturn;\n\t\t}\n\t\tvar a = \"406234657,406234653,406234651,406234652,406234650,406234658,406234656,406234654,406234648,406234665,406234663,406234666,406234661,406234667,406234662,406234660,406234668,406234670,406234673,406234671,\";\n\t\t$(\"#answerwqbid\").val(a);\n\t\t$(\"#pyFlag\").val(\"1\");\n\n\t\tsetClozeTextAnswers();\n\t\tsetConnLineAnswer();\n\t\tsetSortQuesAnswer();\n\t\tsetAllClozeAnswer();\n\t\tsetReadComprehensionAnswer();\n\t\tsetProceduralAnswer();\n\t\tif (typeof updateAllFillinBlanksData === 'function') {\n\t\t\tupdateAllFillinBlanksData();\n\t\t}\n\t\t// setBType();\n\t\ttempSave=true;\n\t\t$(\"#tempsave\").text('正在暂存...');\n\n\t\tsaveWork();\n\t}\n\n\tfunction saveWork() {\n\t\tvar totalQuestionNum = $(\"#totalQuestionNum\").val();\n\t\t//临时保存或时间到系统自动提交试卷\n\t\tvar ajax_url = _HOST_CP2_ + \"/work/addStudentWorkNew?_classId=\"+$(\"#classId\").val()+\"&courseid=\"+$(\"#courseId\").val()+\"&token=\"+$(\"#enc_work\").val()+\"&totalQuestionNum=\"+totalQuestionNum; //表单目标\n\t\tvar ajax_type = $(\"#form1\").attr('method'); //提交方法\n\t\tif (typeof updateAllFillinBlanksData === 'function') {\n\t\t\tupdateAllFillinBlanksData();\n\t\t}\n\t\tvar ajax_data = $(\"#form1\").serialize(); //表单数据\n\t\tajax_url += '&ua='+clientType();\n\t\tajax_url += '&formType=' + getformType();\n\t\tajax_url += '&saveStatus=' + 1;\n\t\tajax_url += '&version=1';\n\t\tajax_url += '&tempsave=1';\n\n\t\t$.ajax({\n\t\t\ttype : ajax_type,\n\t\t\turl : ajax_url,\n\t\t\tdata :ajax_data,\n\t\t\tdataType : \"json\",\n\t\t\tsuccess : function(data){\n\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t}\n\t\t\t\tif (data.status) {\n\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\ttype : 'success',\n\t\t\t\t\t\t\tcontent : \"保存成功！\",\n\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t});\n\t\t\t\t\t}else {\n\t\t\t\t\t\talert(\"保存成功！\");\n\t\t\t\t\t}\n\t\t\t\t\tsetTimeout(function(){\n\t\t\t\t\t\twindow.location.reload();\n\t\t\t\t\t}, 1000);\n\t\t\t\t} else {\n\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\ttype : 'failure',\n\t\t\t\t\t\t\tcontent : data.msg,\n\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t});\n\t\t\t\t\t}else {\n\t\t\t\t\t\talert(data.msg);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t},\n\t\t\tcomplete: function(){\n\t\t\t\ttempSave=false;\n\t\t\t\t$(\"#tempsave\").text(\"暂时保存\");\n\t\t\t}\n\t\t});\n\t}\n\tfunction checkEvaluationSelectNum(ele) {\n\t\ttry {\n\t\t\tvar li = $(ele).parent();\n\t\t\tvar before = $(ele).hasClass('before');\n\t\t\tvar wtop = $(ele).parents('.w-top');\n\t\t\tvar quesId = li.attr('data');\n\t\t\tvar name = \"answercheck\" + quesId;\n\t\t\tvar checkedNum = $(ele).parents('.w-top').find('li.Hover').length;\n\t\t\tcheckedNum = parseInt(checkedNum);\n\t\t\tvar selectNum = $('#selectNum' + quesId).val() || 0;\n\t\t\tselectNum = parseInt(selectNum);\n\t\t\tif (checkedNum >= selectNum) {\n\t\t\t\tvar checked = li.hasClass('Hover');\n\t\t\t\tif (!checked) {\n\t\t\t\t\tvar submitOffsetTop = 0;\n\t\t\t\t\tif($(\".btnSave\")[0]){\n\t\t\t\t\t\tsubmitOffsetTop = $(\".btnSave\")[0].offsetTop - 80;\n\t\t\t\t\t}\n\t\t\t\t\tif(submitOffsetTop > 0){\n\t\t\t\t\t\t$.toast({\n\t\t\t\t\t\t\ttype : 'notice',\n\t\t\t\t\t\t\tcontent : '最多选' + selectNum + '项',\n\t\t\t\t\t\t\ttop : submitOffsetTop + \"px\"\n\t\t\t\t\t\t});\n\t\t\t\t\t}else {\n\t\t\t\t\t\talert('最多选' + selectNum + '项');\n\t\t\t\t\t}\n\t\t\t\t\treturn false;\n\t\t\t\t}\n\t\t\t}\n\t\t} catch (err) {}\n\t\treturn true;\n\t}\n\n\tfunction clientType(){\n\t\tvar userAgent = navigator.userAgent;\n\t\tvar ua = \"pc\";\n\t\ttry{\n\t\t\tif(userAgent.indexOf(\"ChaoXingStudy\") > -1){\n\t\t\t\tua = \"app\";\n\t\t\t}\n\t\t}catch(e){}\n\n\t\treturn ua;\n\t}\n\n\tfunction getformType(){\n\t\tvar form_type = $(\"#form1\").attr('method'); //提交方法\n\t\tif(form_type){\n\t\t\treturn form_type;\n\t\t}\n\t\treturn \"post\";\n\t}\n\n\tfunction addcheck(id){\n\t\tsetTimeout(function() {\n\t\t\tvar checkvalue = document.getElementsByName(\"answercheck\"+id);\n\t\t\tvar checkradiovalue = \"\";\n\t\t\tfor(var i = 0; i < checkvalue.length; i++){\n\t\t\t\tif(checkvalue[i].checked){\n\t\t\t\t\tcheckradiovalue += checkvalue[i].value;\n\t\t\t\t}\n\t\t\t}\n\t\t\tdocument.getElementById(\"answer\"+id).value = checkradiovalue;\n\t\t},200);\n\t}\n\tfunction addChoice(obj) {\n\t\tvar qid = $(obj).attr(\"qid\");\n\t\tvar qt = $(obj).attr(\"qtype\");\n\n\t\tif ($(obj).find(\".num_option\").hasClass(\"check_answer\")) {\n\t\t\t$(obj).find(\".num_option\").removeClass(\"check_answer\");\n\t\t\t$(obj).attr(\"aria-checked\",\"false\");\n\t\t\t$(obj).attr(\"aria-pressed\",\"false\");\n\t\t} else {\n\t\t\t$(\".choice\" + qid).removeClass(\"check_answer\");\n\t\t\t$(obj).find(\".num_option\").addClass(\"check_answer\");\n\t\t\t$(obj).attr(\"aria-checked\",\"true\");\n\t\t\t$(obj).attr(\"aria-pressed\",\"true\");\n\t\t}\n\n\t\t// 无障碍支持\n\t\t$(obj).siblings().attr(\"aria-checked\",\"false\");\n\t\t$(obj).siblings().attr(\"aria-pressed\",\"false\");\n\n\t\tvar choiceContent = \"\";\n\t\t$(\".choice\" + qid).each(function(index, ele) {\n\t\t\tif ($(this).hasClass(\"check_answer\")) {\n\t\t\t\tchoiceContent = choiceContent + $(this).attr(\"data\");\n\t\t\t}\n\t\t});\n\t\t$(\"#answer\" + qid).val(choiceContent);\n\n\t\t// if (qt == 14) {\n\t\t// \tvar questionId = $(obj).attr(\"questionId\");\n\t\t// \tsetClozeTextAnswer(questionId);\n\t\t// }\n\t}\n\tfunction addMultipleChoice(obj) {\n\t\tvar qid = $(obj).attr(\"qid\");\n\t\tvar qt = $(obj).attr(\"qtype\");\n\t\tif(qt == 21 &&  !checkEvaluationQuesNum(obj)){\n\t\t\treturn;\n\t\t}\n\t\tif ($(obj).find(\".num_option_dx\").hasClass(\"check_answer_dx\")) {\n\t\t\t$(obj).find(\".num_option_dx\").removeClass(\"check_answer_dx\");\n\t\t\t$(obj).attr(\"aria-checked\",\"false\");\n\t\t\t$(obj).attr(\"aria-pressed\",\"false\");\n\t\t} else {\n\t\t\t$(obj).find(\".num_option_dx\").addClass(\"check_answer_dx\");\n\t\t\t$(obj).attr(\"aria-checked\",\"true\");\n\t\t\t$(obj).attr(\"aria-pressed\",\"true\");\n\t\t}\n\n\t\tvar choiceContent = \"\";\n\t\t$(\".choice\" + qid).each(function(index, ele) {\n\t\t\tif ($(this).hasClass(\"check_answer_dx\")) {\n\t\t\t\tchoiceContent = choiceContent + $(this).attr(\"data\");\n\t\t\t}\n\t\t});\n\t\tvar randomOptions = $(\"#randomOptions\").val();\n\t\tchoiceContent = randomOptions ? sortMultiAnswer(choiceContent) : choiceContent;\n\n\t\t$(\"#answer\" + qid).val(choiceContent);\n\n\t}\n\n\tfunction loadEditorAnswerd(questionId, type) {\n\n\t\tvar active = 1;\n\n\t\tif (type == 2 || type == 9 || type == 10) {\n\t\t\tvar blankNum = $(\"input[name=tiankongsize\" + questionId + \"]\").val();\n\t\t\tfor (var j = 1; j <= parseInt(blankNum); j++) {\n\t\t\t\tvar editor = UE.getEditor(\"answerEditor\" + questionId + j);\n\t\t\t\tvar content = editor.getContent();\n\t\t\t\tif (content.length == 0) {\n\t\t\t\t\tactive = 0;\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t} else if (type == 11) {\n\t\t\tvar answer = $(\"#answer\" + questionId).val();\n\t\t\tvar answerArr = JSON.parse(answer);\n\t\t\tfor (var index in answerArr) {\n\t\t\t\tvar content = answerArr[index].content;\n\t\t\t\tif (content.length == 0) {\n\t\t\t\t\tactive = 0;\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t} else if (type == 13) {\n\t\t\tvar answer = $(\"#answer\" + questionId).val();\n\t\t\tif (answer.length == 0 || answer.length < $(\".sortSelect\" + questionId).size()) {\n\t\t\t\tactive = 0;\n\t\t\t}\n\t\t} else if (type == 14) {\n\t\t\tvar answer = $(\"#answer\" + questionId).val();\n\t\t\tvar answerArr = JSON.parse(answer);\n\t\t\tvar answerContent = answerArr[0];\n\t\t\tfor (var key in answerContent) {\n\t\t\t\tvar content = answerContent[key];\n\t\t\t\tvar answerStr = content.answer;\n\t\t\t\tif (answerStr.length == 0) {\n\t\t\t\t\tactive = 0;\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t}\n\t\t} else if (type == 15 || type == 19) {\n\t\t\t$(\".readingItem\" + questionId).each(function(i, obj) {\n\t\t\t\tvar itemId = $(obj).attr(\"data\");\n\t\t\t\tvar type = $(obj).attr(\"qtype\");\n\t\t\t\tvar itemAnswer = \"\";\n\t\t\t\tswitch (parseInt(type)) {\n\t\t\t\t\tcase 0 :\n\t\t\t\t\tcase 1 : {\n\t\t\t\t\t\titemAnswer = $(\"#answer\" + itemId).val();\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 3 : {\n\t\t\t\t\t\titemAnswer = $(\"#answer\" + itemId).val();\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 2 : {\n\t\t\t\t\t\tvar blankNum = $(\"#blankNum\" + itemId).val();\n\t\t\t\t\t\tfor (var i = 1; i <= blankNum; i++) {\n\t\t\t\t\t\t\tvar answerEditorId = \"answerEditor\" + itemId + i;\n\t\t\t\t\t\t\titemAnswer = UE.getEditor(answerEditorId).getContent();\n\t\t\t\t\t\t\tif (itemAnswer.length == 0) {\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 4 : {\n\t\t\t\t\t\tvar answerEditorId = \"answer\" + itemId;\n\t\t\t\t\t\tvar answerEditorStr = UE.getEditor(answerEditorId).getContent();\n\t\t\t\t\t\titemAnswer = answerEditorStr;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\tif(itemAnswer.length == 0) {\n\t\t\t\t\tactive = 0;\n\t\t\t\t\treturn false\n\t\t\t\t}\n\t\t\t});\n\t\t} else if (type == 17) {\n\t\t\tvar editor = UE.getEditor(\"textarea\" + questionId);\n\t\t\tvar content = editor.getContent();\n\t\t\tif (content.length == 0) {\n\t\t\t\tactive = 0;\n\t\t\t}\n\t\t} else if (type == 24) {\n\t\t\tvar answer = $(\"#answer\" + questionId).val();\n\t\t\tif (typeof(answer) == \"undefined\" || removeAllSpace(answer).length == 0) {\n\t\t\t\tactive = 0;\n\t\t\t} else {\n\t\t\t\ttry {\n\t\t\t\t\tvar answerArr = JSON.parse(answer);\n\t\t\t\t\tfor (var i = 0; i < answerArr.length; i++) {\n\t\t\t\t\t\tif (!answerArr[i].content || answerArr[i].content == \"\") {\n\t\t\t\t\t\t\tactive = 0;\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t} catch(e) {\n\t\t\t\t\tactive = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t} else {\n\t\t\tvar editor = UE.getEditor(\"answer\" + questionId);\n\t\t\tvar content = editor.getContent();\n\t\t\tif (content.length == 0) {\n\t\t\t\tactive = 0;\n\t\t\t}\n\t\t}\n\n\t\tif (active == 1) {\n\t\t\t$(\"#answerSheet\" + questionId).addClass(\"active\");\n\t\t} else {\n\t\t\t$(\"#answerSheet\" + questionId).removeClass(\"active\");\n\t\t}\n\t}\n\tfunction loadAnswerSheet(questionId, content) {\n\t\tif($(\"#answerSheet\" + questionId).hasClass(\"active\") && content.length == 0) {\n\t\t\t$(\"#answerSheet\" + questionId).removeClass(\"active\");\n\t\t} else if(content.length > 0) {\n\t\t\t$(\"#answerSheet\" + questionId).addClass(\"active\");\n\t\t}\n\t}\n\tfunction setClozeTextAnswer(qid) {\n\t\tvar answerObj = {};\n\t\t$(\".clozeTextItem\" + qid).each(function() {\n\t\t\tvar itemId = $(this).attr(\"data\");\n\t\t\tvar content = $(\"#answer\" + qid + itemId).val();\n\t\t\tvar info = {};\n\t\t\tinfo.answer = content;\n\t\t\tanswerObj[itemId] = info;\n\t\t});\n\t\tvar answer = [];\n\t\tanswer.push(answerObj);\n\t\tvar answerStr = JSON.stringify(answer);\n\t\t$(\"#answer\" + qid).val(answerStr);\n\n\t\tloadEditorAnswerd(qid, 14);\n\t}\n\tfunction setAllClozeAnswer() {\n\t\t$(\".clozeTextQues\").each(function() {\n\t\t\tvar qid = $(this).attr(\"data\");\n\t\t\tvar answerObj = {};\n\t\t\t$(\".clozeTextItem\" + qid).each(function() {\n\t\t\t\tvar itemId = $(this).attr(\"data\");\n\t\t\t\tvar content = $(\"#answer\" + qid + itemId).val();\n\t\t\t\tvar info = {};\n\t\t\t\tinfo.answer = content;\n\t\t\t\tanswerObj[itemId] = info;\n\t\t\t});\n\t\t\tvar answer = [];\n\t\t\tanswer.push(answerObj);\n\t\t\tvar answerStr = JSON.stringify(answer);\n\t\t\t$(\"#answer\" + qid).val(answerStr);\n\t\t});\n\t}\n\n\t\t\tfunction setReadComprehensionAnswer() {\n\t\t$(\".readComprehensionQues\").each(function() {\n\t\t\tvar answerObj = {};\n\t\t\tvar qid = $(this).attr(\"data\");\n\t\t\t$(\".readingItem\" + qid).each(function() {\n\t\t\t\tvar qtid = $(this).attr(\"data\");\n\t\t\t\tvar itemId = $(this).attr(\"itemId\");\n\t\t\t\tvar type = $(this).attr(\"qtype\");\n\t\t\t\tvar itemAnswer = \"\";\n\t\t\t\tswitch (parseInt(type)) {\n\t\t\t\t\tcase 0 :\n\t\t\t\t\tcase 1 : {\n\t\t\t\t\t\titemAnswer = $(\"#answer\" + qtid).val();\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 3 : {\n\t\t\t\t\t\titemAnswer = $(\"#answer\" + qtid).val();\n\t\t\t\t\t\titemAnswer = itemAnswer ? (itemAnswer == \"true\" ? true : false) : itemAnswer;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 2 : {\n\t\t\t\t\t\tvar answerItem = [];\n\t\t\t\t\t\tvar blankNum = $(\"#blankNum\" + qtid).val();\n\t\t\t\t\t\tfor (var i = 1; i <= blankNum; i++) {\n\t\t\t\t\t\t\tvar answerEditorId = \"answerEditor\" + qtid + i;\n\t\t\t\t\t\t\tvar answerEditorStr = UE.getEditor(answerEditorId).getContent();\n\t\t\t\t\t\t\tvar item = {};\n\t\t\t\t\t\t\titem.content = answerEditorStr;\n\t\t\t\t\t\t\titem.name = i.toString();\n\t\t\t\t\t\t\tanswerItem.push(item);\n\t\t\t\t\t\t}\n\t\t\t\t\t\titemAnswer = answerItem;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tcase 4 : {\n\t\t\t\t\t\tvar answerEditorId = \"answer\" + qtid;\n\t\t\t\t\t\tvar answerEditorStr = UE.getEditor(answerEditorId).getContent();\n\t\t\t\t\t\titemAnswer = answerEditorStr;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\tdefault : {}\n\t\t\t\t}\n\t\t\t\tvar info = {};\n\t\t\t\tinfo.type = parseInt(type);\n\t\t\t\tinfo.answer = (itemAnswer != undefined ? itemAnswer : \"\");\n\t\t\t\tanswerObj[itemId] = info;\n\t\t\t});\n\t\t\tvar answer = [];\n\t\t\tanswer.push(answerObj);\n\t\t\tvar answerStr = JSON.stringify(answer);\n\t\t\t$(\"#answer\" + qid).val(answerStr);\n\t\t});\n\t}\n\t\t\tfunction setProceduralAnswer() {\n\t\tvar input_proceduralQues=$(\"input[name^='answertype'][value='17']\");\n\t\tinput_proceduralQues.each(function(){\n\t\t\tvar answer = [];\n\t\t\tvar div=$(this).parent();\n\t\t\tvar quesId = div.find(\".proceduralQue\").attr(\"data\");\n\t\t\tvar language=div.find(\".languageSelect\").val();\n\t\t\tvar editor = codeEditors[quesId];\n\t\t\tvar richcode = editor.getValue();\n\n\t\t\trichcode = wrapCode(richcode);\n\t\t\tvar code = editor.getValue();\n\n\t\t\tvar item={};\n\t\t\titem.language=parseInt(language);\n\t\t\titem.answer=richcode;\n\t\t\titem.answerTxt=code;\n\t\t\tanswer[0]=item;\n\t\t\tvar answerStr = JSON.stringify(answer);\n\t\t\t$(this).prev().val(answerStr);\n\t\t});\n\t}\n\n\tfunction wrapCode(code) {\n\t\tvar preElement = $('<pre>').addClass('line-numbers hover newProcedure');\n\t\tvar codeElement = $('<code>');\n\t\tcodeElement.addClass('language-plain');\n\t\tcodeElement.attr('lang', 'Plain Text');\n\t\tcodeElement.text(code);\n\t\tpreElement.append(codeElement);\n\t\treturn preElement.prop('outerHTML');\n\t}\n\n\tfunction setConnLineAnswer(){\n\t\tvar input_connLine=$(\"input[name^='answertype'][value='11']\");\n\t\t$(input_connLine).each(function(){\n\t\t\tvar selectEle=$(this).parent().find(\".thirdUlList select\");\n\t\t\tvar answer=getOneConnLineAnswer(selectEle);\n\t\t\t$(this).prev().val(answer);\n\t\t\t//console.log($(this).prev().val());\n\t\t});\n\t}\n\n\tfunction setClozeTextAnswers() {\n\t\tvar input_clozeTextQues=$(\"input[name^='answertype'][value='14']\");\n\t\t$(input_clozeTextQues).each(function(){\n\t\t\tvar qid = $(this).attr(\"qid\");\n\t\t\tsetClozeTextAnswer(qid);\n\t\t});\n\t}\n\n\t//排序题处理\n\tfunction setSortQuesAnswer(){\n\t\tvar input_sortQues=$(\"input[name^='answertype'][value='13']\");\n\t\t$(input_sortQues).each(function(){\n\t\t\tvar selectEle=$(this).parent().find(\".sortQuesSelect select\");\n\t\t\tvar answer=\"\";\n\t\t\t$(selectEle).each(function(){\n\t\t\t\tanswer=answer+$(this).val();\n\t\t\t});\n\t\t\t$(this).prev().val(answer);\n\t\t});\n\t}\n\n\t//连线题处理\n\tfunction getOneConnLineAnswer(obj) {\n\t\tvar answerArr = [];\n\t\t$(obj).each(function () {\n\t\t\tvar name = $(this).parents(\".lineOption\").attr(\"index\");\n\t\t\tvar content = $(this).attr(\"value\");\n\t\t\tvar obj = {};\n\t\t\tobj.name = name;\n\t\t\tobj.content = content;\n\t\t\tanswerArr.push(obj);\n\t\t});\n\n\t\tanswerArr.sort(function (a, b) {\n\t\t\tvar name1 = a.name || \"\";\n\t\t\tvar name2 = b.name || \"\";\n\t\t\treturn Number(name1) - Number(name2);\n\t\t});\n\n\t\treturn JSON.stringify(answerArr);\n\t}\n\n\tfunction showVerifyTip() {\n\t\t$(\".mask\").css(\"display\",\"block\");\n\t\t$(\"#verifyCodeTipWin\").css(\"display\",\"block\");\n\t}\n\n\tfunction hideVerifyTip() {\n\t\t$(\".mask\").css(\"display\",\"none\");\n\t\t$(\"#verifyCodeTipWin\").css(\"display\",\"none\");\n\t\tshowWorkVerify();\n\t}\n\n\tfunction showWorkVerify() {\n\t\t$(\".mask\").css(\"display\",\"block\");\n\t\t$(\"#verifyCodeWin\").css(\"display\",\"block\");\n\t}\n\n\tfunction hideWorkVerify() {\n\t\t$(\".mask\").css(\"display\",\"none\");\n\t\t$(\"#verifyCodeWin\").css(\"display\",\"none\");\n\t}\n\tfunction workVerifyCode() {\n\t\t$(\"#workVerifyImg\").attr(\"src\", _HOST_CP2_ + \"/verifyCode/stuWork?\" + new Date().getTime());\n\t}\n\tfunction submitCheckTimes() {\n\t\tvar addTimes = $(\"#addTimes\").val() || 0;\n\t\tvar limitWorkSubmitTimes = $(\"#limitWorkSubmitTimes\").val() || 100;\n\t\tif (addTimes > parseInt(limitWorkSubmitTimes)) {\n\t\t\thideWindow();\n\t\t\tshowWorkVerify();\n\t\t} else {\n\t\t\tform1submit();\n\t\t}\n\t}\n\t//点击输入框出现编辑器\n\t$(document).on('click', '.InpDIV', function() {\n\t\t$(\".InpDIV\").show();\n\t\t$(\".InpDIV\").next().hide();\n\t\t$(this).hide();\n\t\t$(this).next().show()\n\t\tvar id = $(this).next().find(\"textarea\").attr(\"id\");\n\t\tUE.getEditor(id).focus();\n\t})\n\tfunction verifyCode() {\n\t\tvar courseId = $(\"#courseId\").val() || 0;\n\t\tvar classId = $(\"#classId\").val() || 0;\n\t\tvar cpi = $(\"#cpi\").val() || 0;\n\t\tvar workId = $(\"#workRelationId\").val() || 0;\n\t\tvar answerId = $(\"#workAnswerId\").val() || 0;\n\t\tvar inputCode = $(\"#inputCode\").val() || \"\";\n\t\t$.ajax({\n\t\t\ttype: \"get\",\n\t\t\turl: _HOST_CP2_ + \"/work/verify/code\",\n\t\t\tcache: false,\n\t\t\tdataType: \"json\",\n\t\t\tasync: false,\n\t\t\tdata: {\n\t\t\t\t\"courseId\": courseId,\n\t\t\t\t\"classId\": classId,\n\t\t\t\t\"cpi\": cpi,\n\t\t\t\t\"workId\": workId,\n\t\t\t\t\"answerId\": answerId,\n\t\t\t\t\"inputCode\": inputCode\n\t\t\t},\n\t\t\tsuccess: function (data) {\n\t\t\t\tif (!data.status) {\n\t\t\t\t\tworkVerifyCode();\n\t\t\t\t\thideWorkVerify();\n\n\t\t\t\t\t$(\"#inputCode\").val(\"\");\n\t\t\t\t\t$(\"#verifyCodeTip\").html(data.msg);\n\t\t\t\t\tshowVerifyTip();\n\t\t\t\t} else {\n\t\t\t\t\tvar enc = data.enc;\n\t\t\t\t\t$(\"#workTimesEnc\").val(enc);\n\t\t\t\t\thideWorkVerify();\n\t\t\t\t\tform1submit();\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\t}\n\tfunction sortMultiAnswer(answer) {\n\t\tif ( !answer || answer.trim().length == 0) {\n\t\t\treturn \"\";\n\t\t}\n\t\tvar answerArray = answer.trim().split('');\n\t\tvar sortedAnswerArray = answerArray.sort();\n\t\treturn sortedAnswerArray.join('');\n\t}\n",
+    "\n\tfunction inputAddChoice(obj) {\n\t\tif(event.keyCode == 13 || event.keyCode == 32){\n\t\t\t$(obj).find(\"input\").attr(\"checked\", true)\n\t\t\t$(obj).attr(\"aria-checked\", true)\n\t\t\t$(obj).attr(\"aria-pressed\", true)\n\t\t\t$(obj).siblings(\"li\").find(\"input\").removeAttr(\"checked\");\n\t\t\t$(obj).siblings(\"li\").removeAttr(\"aria-checked\");\n\t\t\t$(obj).siblings(\"li\").removeAttr(\"aria-pressed\");\n\t\t}\n\t}\n\t// 无障碍tab+shift聚焦支持\n\tfunction preFocusButton(index) {\n\t\tif(event.keyCode == 9  && event.shiftKey){\n\t\t\tif (index && index == \"1\") {\n\t\t\t\t$(\"#closeFoucsButton1\").attr(\"tabindex\",\"0\");\n\t\t\t\t$(\"#submitBackCancel\").focus();\n\t\t\t} else {\n\t\t\t\t$(\"#closeFoucsButton\").attr(\"tabindex\",\"0\");\n\t\t\t\t$(\"#nextFocusButton\").focus();\n\t\t\t}\n\t\t}\n\t}\n\t// 无障碍tab聚焦支持\n\tfunction nextFocusButton(index) {\n\t\t$(\"#closeFoucsButton\").attr(\"tabindex\",\"-1\");\n\t\t$(\"#closeFoucsButton1\").attr(\"tabindex\",\"-1\");\n\t\tif(event.keyCode == 9  && !event.shiftKey){\n\t\t\tpopCloseHeadFocus(index);\n\t\t}\n\n\t\tif(event.keyCode == 13){\n\t\t\t$(\"#closeFoucsButton\").attr(\"tabindex\",\"-1\");\n\t\t\t$(\"#closeFoucsButton1\").attr(\"tabindex\",\"-1\");\n\t\t}\n\t}\n\t// 聚焦到关闭按钮\n\tfunction popCloseHeadFocus(index) {\n\t\tif (index && index == \"1\") {\n\t\t\t$(\"#closeFoucsButton1\").attr(\"tabindex\",\"0\");\n\t\t\t$(\"#submitBack\").focus();\n\t\t} else {\n\t\t\t$(\"#closeFoucsButton\").attr(\"tabindex\",\"0\");\n\t\t\t$(\"#confirmSubWin\").focus();\n\t\t}\n\t}\n\t$(\".B-answerCon span\").click(function(){\n\t\tvar answerCon = $(this).parent().parent();\n\t\tanswerCon.find(\"span\").removeClass(\"check_answer\");\n\t\t$(this).addClass(\"check_answer\");\n\t\t$(this).addClass(\"check_answer\");\n\t\tsetBType(answerCon.parents('.bTypeWrap'));\n\t\tfunction setBType(bTypeWrap) {\n\t\t\tvar answerCons = bTypeWrap.find('.B-answerCon');\n\t\t\tvar answer = [];\n\t\t\tanswerCons.each(function(index,obj) {\n\t\t\t\tvar choice = $(this).find(\"span.check_answer\").attr(\"data\") || \"\";\n\t\t\t\tvar item = {\"name\" : (index + 1), \"content\" : choice};\n\t\t\t\tanswer.push(item);\n\t\t\t});\n\t\t\tvar answerStr = JSON.stringify(answer);\n\t\t\tbTypeWrap.next().val(answerStr);\n\t\t\tloadAnswerSheet(bTypeWrap.attr(\"data\"),answerStr);\n\t\t}\n\t});\n",
+    "https://mooc1.chaoxing.com/mooc-ans/space/new/js/resizeWorkWindow.js?v=2024-0407-1500",
+    "https://mooc-res2.chaoxing.com/mooc-ans/js/highlight.min.js",
+    "https://mooc-res2.chaoxing.com/mooc-ans/js/highlightjs-line-numbers.js",
+    "\n    /**\n     * 保证最后加载\n     */\n    $(function () {\n        var pre = $(\".ans-cc\").find('pre')\n        if(pre){\n            pre.each(function () {\n                // debugger\n                var me = this;\n                if ($(me).hasClass('CodeMirror-line')) { //代码编辑器\n                    return;\n                }\n                var lang = me.firstChild && me.firstChild.lang;\n                if (typeof (lang) == 'undefined' || lang == null || lang == \"\" ) {\n                    lang = me.firstChild && me.firstChild.className;\n                    if (typeof (lang) != 'undefined' && lang != null && lang != \"\" ) {\n                        var split = lang.split(\"-\");\n                        lang = split[1];\n                        if (lang == 'plain') {\n                            lang = 'Plain Text';\n                        }\n                    } else {\n                        lang = 'Plain Text';\n                    }\n                }\n                me.innerHTML = '<div class=\"code-tool-wrap clearfix\"><div class=\"code-lang fl\">' + lang\n                        + '</div><div class=\"copy1 fr\"><i></i><span></span></div></div>' + me.innerHTML;\n                me.innerHTML = me.innerHTML.replace(/<br\\s*\\/?>/g, \"\\n\");\n            })\n        }\n\n        try {\n            hljs.initHighlightingOnLoad();\n            hljs.initLineNumbersOnLoad({ singleLine:true });\n        } catch (e) {\n\n        }\n    })\n",
+    "\n\n    function proceduralCodePreview(questionId) {\n        var editor = codeEditors[questionId];\n        var pureTxt = editor.getValue();\n        var code = pureTxt;\n        code = UE.utils.html(code);\n        if(top && top.previewHtmlPage){\n            top.previewHtmlPage(code);\n        }else if(parent && parent.parent && parent.parent.parent && parent.parent.parent.previewHtmlPage){\n            parent.parent.parent.previewHtmlPage(code);\n        }else {\n            previewHtmlPage(code);\n        }\n    }\n\n    function previewHtmlPage(code) {\n        var renderTarget = document.querySelector('.preview-render-div');\n        if (!renderTarget) {\n            return;\n        }\n        renderTarget.innerHTML = '';\n\n        var iframe = document.createElement('iframe');\n        iframe.setAttribute('sandbox', 'allow-scripts');\n        iframe.style.width = '100%';\n        iframe.style.height = '600px';\n        iframe.style.border = 'none';\n        iframe.style.borderRadius = '8px';\n        iframe.style.background = 'white';\n        iframe.style.display = 'block';\n\n        iframe.srcdoc =\n                '<meta ' +\n                'http-equiv=\"Content-Security-Policy\" ' +\n                'content=\"' +\n                'default-src \\'none\\'; ' +\n                'script-src \\'unsafe-inline\\'; ' +\n                'style-src \\'unsafe-inline\\'; ' +\n                'img-src data:; ' +\n                'connect-src \\'none\\'; ' +\n                'frame-src \\'none\\'; ' +\n                'object-src \\'none\\'; ' +\n                'form-action \\'none\\';' +\n                '\"/>' +\n                '<script>' +\n                'window.alert=function(){};' +\n                'window.confirm=function(){return false;};' +\n                'window.prompt=function(){return null;};' +\n                'window.open=function(){return null;};' +\n                '</scr' + 'ipt>' +\n                code;\n        renderTarget.appendChild(iframe);\n        var previewDialog = renderTarget.closest('.preview-dialog');\n        if (previewDialog) {\n            previewDialog.style.display = 'block';\n        }\n    }\n\n    function closeHtmlPage() {\n        $('.preview-dialog').hide();\n    }\n"
+  ]
+}

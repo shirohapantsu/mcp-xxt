@@ -1,0 +1,7 @@
+passwd.json
+node_modules/
+dist/
+dist-mcp/
+dist-bundle/
+.browser-profile/
+*.log

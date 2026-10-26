@@ -1,0 +1,170 @@
+{
+  "startedAt": "2026-10-24T09:57:04.974Z",
+  "steps": {
+    "run": {
+      "id": "3e04395a-f09e-40b7-b2b6-ad44a4d8bb95",
+      "job": "章节测验",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930799"
+      },
+      "mode": "course"
+    },
+    "answered": {
+      "applied": 20
+    },
+    "submit": {
+      "status": "saved-and-left",
+      "evidence": "暂存请求响应 status=true msg=保存成功！（HTTP 200）",
+      "run_id": "3e04395a-f09e-40b7-b2b6-ad44a4d8bb95"
+    },
+    "finalRun": {
+      "status": "saved-and-left",
+      "questions": [
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "single",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "multiple",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "judgement",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "judgement",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "judgement",
+          "status": "applied",
+          "finish": true
+        },
+        {
+          "type": "judgement",
+          "status": "applied",
+          "finish": true
+        }
+      ]
+    }
+  },
+  "checkpoints": {
+    "login": {
+      "ok": true,
+      "detail": "get_login_status={\"loggedIn\":true,\"detail\":\"检测到登录 cookie（_uid）\"}",
+      "at": "5.7s"
+    },
+    "open-page": {
+      "ok": true,
+      "detail": "session_id=659f8175-5847-48c5-9cdd-4f4e82781c56 title=学生学习页面",
+      "at": "6.6s"
+    },
+    "work-ready": {
+      "ok": true,
+      "detail": "run=3e04395a-f09e-40b7-b2b6-ad44a4d8bb95 job=章节测验 mode=course caps={\"auto_save\":true,\"auto_submit\":true}",
+      "at": "11.3s"
+    },
+    "questions": {
+      "ok": true,
+      "detail": "题目 1 道（已导出 questions.json，图片 0 张）",
+      "at": "23.4s"
+    },
+    "answers": {
+      "ok": true,
+      "detail": "agent 回填 20/20，状态分布 {\"applied\":20}",
+      "at": "220.5s"
+    },
+    "ready-for-review": {
+      "ok": true,
+      "detail": "status=ready_for_review work_completed=true",
+      "at": "220.5s"
+    },
+    "submit-temporary": {
+      "ok": true,
+      "detail": "status=saved-and-left evidence=\"暂存请求响应 status=true msg=保存成功！（HTTP 200）\"",
+      "at": "220.8s"
+    },
+    "traversal-continue": {
+      "ok": null,
+      "detail": "still-waiting（未收到后续测验或课程结束事件，尚不能确认遍历恢复）",
+      "at": "260.8s"
+    }
+  }
+}

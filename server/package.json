@@ -1,0 +1,32 @@
+{
+	"name": "mcp-xxt-server",
+	"version": "0.1.0",
+	"private": true,
+	"description": "MCP server for ocsjs-driven 超星学习通 流程化答题（Playwright 注入式运行 ocsjs MCP bundle）",
+	"type": "module",
+	"main": "dist/index.js",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"dev": "tsc --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "node --test \"tests/*.test.mjs\"",
+		"sync-bundle": "node scripts/sync-bundle.mjs"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "1.32.2",
+		"@playwright/browser-chromium": "1.62.0",
+		"playwright": "1.62.0",
+		"zod": "3.25.76"
+	},
+	"devDependencies": {
+		"typescript": "5.9.2",
+		"@types/node": "22.10.2"
+	},
+	"mcp-xxt": {
+		"版本锁定说明": "P0 锁定（2026-10-24）：MCP SDK 1.32.2 / playwright 1.62.0（chromium 1234；原选 1.64.1 因其 chromium 1248 在可用镜像缺失而下调，网络受限环境用 npmmirror）/ zod 3.25.76 / typescript 5.9.2。浏览器由 @playwright/browser-chromium postinstall 自动安装（npm install 不带 --ignore-scripts 时）；否则 PLAYWRIGHT_DOWNLOAD_HOST=https://cdn.npmmirror.com/binaries/playwright npx playwright install chromium"
+	}
+}

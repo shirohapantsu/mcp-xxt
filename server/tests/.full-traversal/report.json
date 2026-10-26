@@ -1,0 +1,165 @@
+{
+  "startedAt": "2026-10-24T10:12:26.365Z",
+  "mode": "skip-all(null) + temporary",
+  "tests": [
+    {
+      "seq": 1,
+      "run_id": "56d3d8fc-e0d0-4c2e-95b1-f35d162246e8",
+      "started_at": "11.6s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930799"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 2,
+      "run_id": "cca93ab9-d6b4-4f7a-bdcc-0944eb9ef719",
+      "started_at": "159.2s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930809"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 3,
+      "run_id": "9489eeca-7027-43ab-ac81-69a8d0595228",
+      "started_at": "294.1s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930791"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 4,
+      "run_id": "182e80b3-5808-4c68-98d8-c5473574d5bb",
+      "started_at": "423.9s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930789"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 5,
+      "run_id": "530685ca-0e15-4acc-b01b-7e8c8764e143",
+      "started_at": "593.3s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930824"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 6,
+      "run_id": "bcc6fecc-a802-4fb6-8ec0-fbae88144f1d",
+      "started_at": "723.2s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930796"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 7,
+      "run_id": "5231f94d-e146-4b94-b60d-34a951f0bf8b",
+      "started_at": "865.6s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930813"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    },
+    {
+      "seq": 8,
+      "run_id": "40f33ffc-0e13-4f90-87c0-15731260b567",
+      "started_at": "993.3s",
+      "identity": {
+        "courseId": "267298804",
+        "clazzId": "155243931",
+        "chapterId": "1249930794"
+      },
+      "job": "章节测验",
+      "questions": 20,
+      "statusDistribution": {
+        "skipped": 20
+      },
+      "temporary": "saved-and-left",
+      "flow_ok": true,
+      "final_status": "saved-and-left"
+    }
+  ],
+  "termination": {
+    "event": "traversal-blocked",
+    "reason": "已到最后一个章节但仍未完成全部任务点，无法继续自动跳转。",
+    "at": "1068.9s"
+  },
+  "session_id": "350e15b7-fedf-4cf9-9b8c-74cb8a87d736",
+  "summary": {
+    "tests": 8,
+    "flow_ok": true,
+    "termination": {
+      "event": "traversal-blocked",
+      "reason": "已到最后一个章节但仍未完成全部任务点，无法继续自动跳转。",
+      "at": "1068.9s"
+    }
+  }
+}

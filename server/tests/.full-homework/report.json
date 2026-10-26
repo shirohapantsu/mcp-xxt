@@ -1,0 +1,62 @@
+{
+  "startedAt": "2026-10-24T13:08:59.271Z",
+  "steps": {
+    "capabilities": {
+      "auto_save": true,
+      "auto_submit": false
+    },
+    "answered": {
+      "applied": 15
+    }
+  },
+  "checkpoints": {
+    "login": {
+      "ok": true,
+      "detail": "{\"loggedIn\":true,\"detail\":\"检测到登录 cookie（_uid）\"}",
+      "at": "5.9s"
+    },
+    "open-page": {
+      "ok": true,
+      "detail": "session_id=无（正确）",
+      "at": "6.5s"
+    },
+    "start-work": {
+      "ok": true,
+      "detail": "run=94b4c816-a535-498f-92ec-55e4428dd394",
+      "at": "6.5s"
+    },
+    "capabilities": {
+      "ok": true,
+      "detail": "auto_save=true auto_submit=false（F10 能力探测：saveWork 暂存支持，交卷不支持）",
+      "at": "6.5s"
+    },
+    "answers": {
+      "ok": true,
+      "detail": "agent 回填 15/15，状态分布 {\"applied\":15}",
+      "at": "99.0s"
+    },
+    "ready-for-review": {
+      "ok": true,
+      "detail": "status=ready_for_review work_completed=true",
+      "at": "99.0s"
+    },
+    "save-temporary": {
+      "ok": true,
+      "detail": "status=saved evidence=\"暂存请求响应 status=true msg=保存成功！（HTTP 200）\"（手动模式 saved，页面仍占用，非 saved-and-left）",
+      "at": "99.3s"
+    },
+    "released": {
+      "ok": true,
+      "detail": "终态=released（人工保存完成语义，互斥释放）",
+      "at": "99.3s"
+    },
+    "mutex-released": {
+      "ok": true,
+      "detail": "released 后可再次 start_work（验证 run=cb89bec9-97df-417e-af9d-807045d2ee1e）",
+      "at": "99.3s"
+    }
+  },
+  "summary": {
+    "ok": true
+  }
+}

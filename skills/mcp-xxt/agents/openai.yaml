@@ -1,0 +1,8 @@
+interface:
+  display_name: "超星学习通 MCP"
+  short_description: "通过 mcp-xxt 编排课程测验与作业回填，生成审核单并暂存答案"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "mcp-xxt"
+      description: "本项目的超星学习通 stdio MCP server"

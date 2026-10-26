@@ -1,0 +1,125 @@
+{
+  "inspectedAt": "2026-10-24T13:12:02.510Z",
+  "persistence": [
+    {
+      "index": 1,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 2,
+      "type": "single",
+      "value": "D",
+      "expected": "D",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 3,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 4,
+      "type": "single",
+      "value": "C",
+      "expected": "C",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 5,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 6,
+      "type": "single",
+      "value": "B",
+      "expected": "B",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 7,
+      "type": "single",
+      "value": "A",
+      "expected": "A",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 8,
+      "type": "single",
+      "value": "A",
+      "expected": "A",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 9,
+      "type": "judgement",
+      "value": "false",
+      "expected": "false",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 10,
+      "type": "judgement",
+      "value": "false",
+      "expected": "false",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 11,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 12,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 13,
+      "type": "judgement",
+      "value": "false",
+      "expected": "false",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 14,
+      "type": "judgement",
+      "value": "true",
+      "expected": "true",
+      "matches": true,
+      "populated": true
+    },
+    {
+      "index": 15,
+      "type": "judgement",
+      "value": "false",
+      "expected": "false",
+      "matches": true,
+      "populated": true
+    }
+  ]
+}
