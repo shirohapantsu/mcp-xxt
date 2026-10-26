@@ -13,6 +13,7 @@
 3. [MCP 安装与配置](#3-mcp-安装与配置)
 4. [Skill 安装](#4-skill-安装)
 5. [使用示例](#5-使用示例)
+6. [开源许可与致谢](#6-开源许可与致谢)
 
 ---
 
@@ -341,3 +342,17 @@ skills/mcp-xxt/
 //   "run_id": "009c8e7b-d374-4416-a0a6-a22f5fa8276a"
 // }
 ```
+
+---
+
+## 6. 开源许可与致谢
+
+本项目采用 **MIT License**，完整许可条款见 [LICENSE](LICENSE)。允许在遵守许可条款、保留版权及许可声明的前提下使用、修改、分发和商业使用。
+
+本项目基于 [ocsjs](https://github.com/ocsjs/ocsjs) 二次开发，保留并修改了其页面脚本与核心答题流程，新增 MCP Server、页面桥接和配套 Skill。
+
+- ocsjs 原始代码：Copyright (c) 2022 enncy，原始 MIT 许可保留于 [ocsjs/LICENSE](ocsjs/LICENSE)。
+- 本项目的修改与原创新增部分：Copyright (c) 2026 shirohapantsu，采用 MIT License。
+- 第三方依赖及资源仍适用各自的许可和版权声明。
+
+分发源码或包含本项目代码的构建产物时，应一并携带适用的版权及许可声明。软件按“原样”提供，不附带任何保证，具体以 LICENSE 中的条款为准。

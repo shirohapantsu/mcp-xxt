@@ -2,6 +2,7 @@
 	"name": "mcp-xxt-server",
 	"version": "0.1.0",
 	"private": true,
+	"license": "MIT",
 	"description": "MCP server for ocsjs-driven 超星学习通 流程化答题（Playwright 注入式运行 ocsjs MCP bundle）",
 	"type": "module",
 	"main": "dist/index.js",
