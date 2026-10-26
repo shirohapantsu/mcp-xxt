@@ -183,14 +183,16 @@ test('已结束 run 的旧 work-ready 不抢占下一轮等待', async () => {
 	assert.equal(resp.run_id, ack2.run_id); // 跳过已终态 run1 的 work-ready
 });
 
-test('课程终止事件只投递一次；重开课程新 session 不继承', async () => {
+test('课程终态可恢复；重开课程新 session 不继承', async () => {
 	const mgr = new RunManager();
 	const s1 = mgr.createSession('p1');
 	mgr.emitEvent(s1, null, 'course-finished', { reason: '全部任务点已完成！' });
-	const r1 = await mgr.waitNextWork(1000);
+	const r1 = await mgr.waitNextWork(1000, 'end-1');
 	assert.equal(r1.event, 'course-finished');
-	const r2 = await mgr.waitNextWork(150);
-	assert.equal(r2.event, 'still-waiting'); // 不重放
+	assert.equal(s1.terminated, true);
+	assert.deepEqual(await mgr.waitNextWork(150, 'end-1'), r1);
+	assert.deepEqual(await mgr.waitNextWork(150, 'end-2'), r1);
+	assert.deepEqual(await mgr.waitNextWork(150), r1);
 	// 重开课程：同页面新 session
 	const s2 = mgr.createSession('p1');
 	const r3 = await mgr.waitNextWork(150);
@@ -205,19 +207,26 @@ test('重进计数身份化：同章节不同测验不累计；取得进展即�
 	mgr.abortRun(a1.run_id, 'aborted');
 	const a2 = courseRun(mgr, { sessionId: s.id, jobId: 'j1', gen: 'g2' });
 	mgr.abortRun(a2.run_id, 'aborted');
+	// 同章节不同测验不累计（j2 从未进入过）
+	const b1 = courseRun(mgr, { sessionId: s.id, jobId: 'j2', gen: 'g4' });
+	assert.ok(b1.ok);
+	mgr.abortRun(b1.run_id, 'aborted');
 	// 第 3 次 → blocked
 	const a3 = courseRun(mgr, { sessionId: s.id, jobId: 'j1', gen: 'g3' });
 	assert.ok(!a3.ok);
 	assert.match(a3.reason, /闯关受阻/);
-	// 同章节不同测验不累计（j2 从未进入过）
-	const b1 = courseRun(mgr, { sessionId: s.id, jobId: 'j2', gen: 'g4' });
-	assert.ok(b1.ok);
-	// 进展后重置：j1 保存完成后可再进入
-	const run = mgr.getRun(b1.run_id);
-	run.identity = { courseId: 'c1', clazzId: 'cl1', chapterId: 'ch1', jobId: 'j1' };
+	assert.equal(s.terminated, true);
+	assert.equal(courseRun(mgr, { sessionId: s.id, jobId: 'j2', gen: 'g5' }).ok, false);
+	// 另一个 session 中取得进展后重置该测验的计数。
+	const s2 = mgr.createSession('p1');
+	const firstAttempt = courseRun(mgr, { sessionId: s2.id, gen: 'g6' });
+	mgr.abortRun(firstAttempt.run_id, 'aborted');
+	const progressed = courseRun(mgr, { sessionId: s2.id, gen: 'g7' });
+	const run = mgr.getRun(progressed.run_id);
 	mgr.applySubmitResult(run.id, 'temporary', true, 'ok');
-	const a4 = courseRun(mgr, { sessionId: s.id, jobId: 'j1', gen: 'g5' });
+	const a4 = courseRun(mgr, { sessionId: s2.id, jobId: 'j1', gen: 'g8' });
 	assert.ok(a4.ok);
+	assert.equal(s2.terminated, false);
 });
 
 test('frame 重生：绑定该 frame 的未终态 run → aborted', () => {
@@ -225,8 +234,8 @@ test('frame 重生：绑定该 frame 的未终态 run → aborted', () => {
 	mgr.createSession('p1');
 	const ack = courseRun(mgr, { sessionId: mgr.getCurrentSession().id });
 	const run = mgr.getRun(ack.run_id);
-	const aborted = mgr.handleFrameRebirth('https://mooc1.chaoxing.com/knowledge/cards?t=2', 'newgen');
-	// URL 仅查询串不同 → 同一 frame
+	const aborted = mgr.handleRunFrameLost(run.id, run.pageKey, run.frameGen);
+	// 上层已按 Frame 引用核对，管理器再核对 run / page / document 代次
 	assert.ok(aborted);
 	assert.equal(aborted.id, run.id);
 	assert.equal(run.status, 'aborted');

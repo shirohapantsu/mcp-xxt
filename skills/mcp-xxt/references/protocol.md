@@ -13,7 +13,7 @@
 | `open_page` | `{url}` | 最终 `url`、`title`；命中课程学习页时有 `session_id` |
 | `start_work` | `{}` | 手动入口的 `run_id`，立即返回；页面桥后续注册题目 |
 | `wait_next_work` | `{timeout_s?, request_id?}` | `event`、可选 `run_id` / `session_id` / `reason`；省略超时默认 60 秒 |
-| `get_status` | `{run_id?}` | run 状态、`mode`、`capabilities`、`work_completed`、`questions`、`submit_uncertain` / `submit_error`；省略 ID 取当前活跃 run |
+| `get_status` | `{run_id?}` | run 状态、`mode`、`capabilities`、`work_completed`、`questions`、`submit_uncertain` / `submit_error`；省略 ID 取当前活跃 run，无活跃 run 时正常返回 `status:"no-run"`；`traversal` 提供课程 session 的状态和终止原因 |
 | `get_pending_questions` | `{run_id}` | `structuredContent.questions`；顶层 `content` 包含图片或失败文字 |
 | `submit_answer` | `{run_id, question_id, answer}` | `question_id`、接收后的 `status` |
 | `submit_answers` | `{run_id, answers:[{question_id, answer}]}` | `results:[{question_id, ok, error?}]`，可能部分成功 |
@@ -86,4 +86,4 @@
 
 `readResult` 是 server 内部能力，**没有**公开 `read_result` MCP 工具。结果不确定时不要编造工具调用。`abort_run` 仅结束流程，不证明保存或提交结果，也不能回滚平台操作。
 
-长时间无进展时检查已知 run 状态、登录提示、最后一条错误和单题 deadline；同一原因持续出现就报告阻塞，避免无限重试。终止事件正常接收后结束该 session 的等待循环，即使后续 wait 可能返回 still-waiting。
+长时间无进展时检查已知 run 状态、`traversal`、登录提示、最后一条错误和单题 deadline；同一原因持续出现就报告阻塞，避免无限重试。终止事件正常接收后结束该 session 的等待循环。终态在 session 内保留，后续 wait 仍返回原终态（重用 request_id 时仍按原请求缓存回放）；重开课程创建的新 session 不继承旧终态。

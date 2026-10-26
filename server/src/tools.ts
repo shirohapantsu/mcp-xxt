@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { BrowserHost, COURSE_STUDY_URL_PATTERN, WORK_PAGE_PATTERNS } from './browser.js';
+import { BrowserHost, COURSE_STUDY_URL_PATTERN, WORK_PAGE_PATTERNS, courseIdentityFromUrl } from './browser.js';
 import { EventRouter } from './inject.js';
 import { Adapters } from './adapters.js';
 import { McpToolError, McpUnsupportedError, RunManager, WaitNextWorkResponse } from './run-manager.js';
@@ -141,22 +141,22 @@ export function registerTools(server: import('@modelcontextprotocol/sdk/server/m
 			let page = deps.currentPage();
 			const looksLikeCourse = COURSE_STUDY_URL_PATTERN.test(url);
 			// 预创建 session：导航期间（含重定向）产生的 frame 事件不丢失
-			if (looksLikeCourse) {
-				rm.createSession(page ? browser.getPageKey(page) : 'pending-page');
+			if (looksLikeCourse && page) {
+				rm.createSession(browser.getPageKey(page), courseIdentityFromUrl(url));
 			}
 			if (!page) {
-				const created = await browser.newPage(url);
+				// 必须在 goto 前绑定实际 Page：导航期间的无测验课程也可能直接结束。
+				const created = await browser.newPage(url, (newPage, pageKey) => {
+					deps.setCurrentPage(newPage);
+					if (looksLikeCourse) rm.createSession(pageKey, courseIdentityFromUrl(url));
+				});
 				page = created.page;
 				deps.setCurrentPage(page);
 			} else {
 				await browser.navigate(page, url);
 			}
-			const pageKey = browser.getPageKey(page);
 			const session = rm.getCurrentSession();
 			const finalUrl = page.url();
-			if (session && session.pageKey === 'pending-page' && looksLikeCourse && COURSE_STUDY_URL_PATTERN.test(finalUrl)) {
-				rm.rebindSessionPage(session.id, pageKey);
-			}
 			if (looksLikeCourse && !COURSE_STUDY_URL_PATTERN.test(finalUrl)) {
 				rm.terminateSession(session?.id ?? '', 'page-invalid', `导航后未落在课程学习页：${finalUrl}`);
 			}
@@ -226,7 +226,7 @@ export function registerTools(server: import('@modelcontextprotocol/sdk/server/m
 		{
 			title: '等待下一个测验',
 			description:
-				'课程遍历模式下挂起等待下一个测验 run 就绪（work-ready）；超时返回 still-waiting（幂等重调）；课程结束/受阻返回终止事件。按 per-session 游标续读，每事件至多投递一次；重试携带同一 request_id 返回缓存响应。',
+				'课程遍历模式下挂起等待下一个测验 run 就绪（work-ready）；超时返回 still-waiting（幂等重调）。测验事件按 session 游标投递；课程结束/受阻/页面失效的终态持久保留，后续等待仍返回该终态。重试携带同一 request_id 返回缓存响应。',
 			inputSchema: {
 				timeout_s: z.number().optional().describe('等待超时秒数，默认 60'),
 				request_id: z.string().optional().describe('可选请求 id：客户端超时/取消后重试携带同一 id 返回缓存响应')
@@ -247,15 +247,18 @@ export function registerTools(server: import('@modelcontextprotocol/sdk/server/m
 		{
 			title: '查询 run 状态',
 			description:
-				'查询 run 状态与逐题作答结果（审核单数据源）。run_id 缺省返回当前活跃 run——事件丢失时经此重新发现未终态 run。',
+				'查询 run 状态与逐题作答结果（审核单数据源）。run_id 缺省返回当前活跃 run；无活跃 run 时返回 no-run。traversal 字段提供当前课程会话的遍历状态与终止原因。',
 			inputSchema: { run_id: z.string().optional().describe('run id；缺省为当前活跃 run') }
 		},
 		async ({ run_id }: { run_id?: string }): Promise<ToolResult> => {
 			const run = rm.getRun(run_id);
+			const traversal = rm.getTraversalStatus();
 			if (!run) {
-				return toolError(run_id ? `run ${run_id} 不存在。` : '当前没有活跃 run。', { status: 'no-run' });
+				if (run_id) return toolError(`run ${run_id} 不存在。`, { status: 'no-run' });
+				const payload = { status: 'no-run', ...(traversal ? { traversal } : {}) };
+				return { content: [text(JSON.stringify(payload))], structuredContent: payload };
 			}
-			const payload = runStatusPayload(run);
+			const payload = { ...runStatusPayload(run), ...(traversal ? { traversal } : {}) };
 			return { content: [text(JSON.stringify(payload))], structuredContent: payload };
 		}
 	);
@@ -434,7 +437,7 @@ export function registerTools(server: import('@modelcontextprotocol/sdk/server/m
 					);
 				}
 				if (outcome.kind === 'failed') {
-					return toolError(`保存/提交失败，run 已退回 ready_for_review：${outcome.evidence}`, {
+					return toolError(`保存/提交失败（run 状态：${outcome.run.status}）：${outcome.evidence}`, {
 						status: 'failed',
 						evidence: outcome.evidence,
 						run_status: outcome.run.status

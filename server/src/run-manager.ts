@@ -4,7 +4,7 @@
  * - 状态机：running → ready_for_review → saving→saved(→saved-and-left) / submitting→finished；
  *   saving 失败退回 ready_for_review；abort_run → released/aborted（终态）。
  * - ready_for_review 唯一迁移依据：全部题目到达终态 且 收到 work-completed。
- * - 事件：per-session 单调 event_id；wait_next_work 按游标每事件至多投递一次；
+ * - 事件：per-session 单调 event_id；work-ready 按游标至多投递一次；session 终态可重复读取；
  *   request_id 缓存已投递响应（客户端超时重试不跳过事件）。
  * - 单活跃 run 互斥：存在未终态 run 时 start_work / work-detected 报错。
  * - 重进计数：按 course/clazz/chapter/job 身份计数，取得进展即重置；同章节不同测验不累计。
@@ -13,6 +13,7 @@
 import { randomUUID } from 'node:crypto';
 import {
 	Envelope,
+	CourseIdentity,
 	ManagedQuestion,
 	ManagedRun,
 	PageEventType,
@@ -46,9 +47,22 @@ export interface WaitNextWorkResponse {
 	reason?: string;
 }
 
+type TraversalTerminalEvent = 'course-finished' | 'traversal-blocked' | 'page-invalid';
+
+export interface TraversalStatus {
+	session_id: string;
+	status: 'traversing' | TraversalTerminalEvent;
+	reason?: string;
+}
+
+function isTraversalTerminalEvent(type: PageEventType): type is TraversalTerminalEvent {
+	return type === 'course-finished' || type === 'traversal-blocked' || type === 'page-invalid';
+}
+
 interface TraversalSession {
 	id: string;
 	pageKey: string;
+	identity?: CourseIdentity;
 	/** 事件历史（含全部类型，供诊断；投递只针对 DELIVERABLE_EVENT_TYPES） */
 	events: Envelope[];
 	nextEventId: number;
@@ -59,8 +73,8 @@ interface TraversalSession {
 	/** request_id → 已投递响应缓存（ADR-0021 §3） */
 	requestIdCache: Map<string, WaitNextWorkResponse>;
 	terminated: boolean;
-	/** 终止事件是否已投递（course-finished / traversal-blocked / page-invalid 只投一次） */
-	terminalEventDelivered: boolean;
+	/** 第一个终止事件持久保留，后续等待可恢复终态。 */
+	terminalEvent?: Envelope;
 	createdAt: number;
 }
 
@@ -85,22 +99,21 @@ export class RunManager {
 
 	// ---------- session ----------
 
-	createSession(pageKey: string): TraversalSession {
-		// 同一页面重开课程：旧 session 的 waiter 终止、迟到事件忽略（ADR-0021 §3）
-		const prev = this.pageSessions.get(pageKey);
-		if (prev) {
-			this.terminateSession(prev, 'page-invalid', '页面重新导航，遍历会话已由新 session 取代');
+	createSession(pageKey: string, identity?: CourseIdentity): TraversalSession {
+		// 同时只遍历一个课程；更换页面也必须结束旧 session 的等待。
+		if (this.currentSessionId) {
+			this.terminateSession(this.currentSessionId, 'page-invalid', '页面重新导航，遍历会话已由新 session 取代');
 		}
 		const session: TraversalSession = {
 			id: randomUUID(),
 			pageKey,
+			identity,
 			events: [],
 			nextEventId: 1,
 			cursor: 0,
 			waiters: new Set(),
 			requestIdCache: new Map(),
 			terminated: false,
-			terminalEventDelivered: false,
 			createdAt: Date.now()
 		};
 		this.sessions.set(session.id, session);
@@ -119,25 +132,54 @@ export class RunManager {
 		return this.currentSessionId ? this.sessions.get(this.currentSessionId) : undefined;
 	}
 
+	getTraversalStatus(): TraversalStatus | undefined {
+		const session = this.getCurrentSession();
+		if (!session) return undefined;
+		const terminal = this.terminalResponse(session);
+		return {
+			session_id: session.id,
+			status: terminal?.event ?? 'traversing',
+			...(terminal?.reason ? { reason: terminal.reason } : {})
+		};
+	}
+
+	/** 同课程、同班级的新学习页接续遍历；已被替换的页面不能再抢回 session。 */
+	resolveSessionPage(pageKey: string, identity?: CourseIdentity): TraversalSession | undefined {
+		const session = this.getCurrentSession();
+		if (!session) return undefined;
+		if (
+			identity && session.identity &&
+			(identity.courseId !== session.identity.courseId || identity.clazzId !== session.identity.clazzId)
+		) {
+			if (session.pageKey === pageKey) this.terminateSession(session.id, 'page-invalid', '学习页的课程或班级已改变，请重新 open_page。');
+			return undefined;
+		}
+		if (session.pageKey === pageKey) return session;
+		if (session.terminated || this.pageSessions.has(pageKey) || !identity || !session.identity) return undefined;
+		this.rebindSessionPage(session.id, pageKey);
+		return session;
+	}
+
 	/** open_page 导航后回填 session 的页面归属（session 在导航前预创建） */
 	rebindSessionPage(sessionId: string, pageKey: string) {
 		const session = this.sessions.get(sessionId);
-		if (!session) return;
+		if (!session || session.terminated) return;
 		session.pageKey = pageKey;
 		this.pageSessions.set(pageKey, sessionId);
 		log.info(`[session] ${sessionId} rebound to page ${pageKey}`);
 	}
 
-	terminateSession(sessionId: string, type: 'page-invalid' | 'traversal-blocked', reason: string) {
+	terminateSession(sessionId: string, type: TraversalTerminalEvent, reason: string) {
 		const session = this.sessions.get(sessionId);
 		if (!session || session.terminated) return;
-		session.terminated = true;
 		this.emitEvent(session, null, type, { reason });
-		for (const waiter of session.waiters) {
-			waiter({ event: type, reason, session_id: session.id });
-		}
-		session.waiters.clear();
-		log.info(`[session] terminated ${session.id}: ${type} ${reason}`);
+	}
+
+	private terminalResponse(session: TraversalSession): (WaitNextWorkResponse & { event: TraversalTerminalEvent }) | null {
+		const event = session.terminalEvent;
+		if (!event || !isTraversalTerminalEvent(event.type)) return null;
+		session.cursor = Math.max(session.cursor, event.eventId);
+		return { event: event.type, session_id: session.id, reason: event.payload.reason as string | undefined };
 	}
 
 	// ---------- 事件 ----------
@@ -150,6 +192,8 @@ export class RunManager {
 		payload: Record<string, unknown>,
 		frame: { url: string; gen: string } = { url: '', gen: '' }
 	): Envelope {
+		// 首个终态是权威结果；关闭页面和迟到事件不能覆盖它。
+		if (session.terminalEvent) return session.terminalEvent;
 		const env: Envelope = {
 			eventId: session.nextEventId++,
 			sessionId: session.id,
@@ -160,9 +204,14 @@ export class RunManager {
 			ts: Date.now()
 		};
 		session.events.push(env);
+		if (isTraversalTerminalEvent(type)) {
+			session.terminated = true;
+			session.terminalEvent = env;
+			log.info(`[session] terminated ${session.id}: ${type} ${String(payload.reason ?? '')}`);
+		}
 		if (DELIVERABLE_EVENT_TYPES.includes(type)) {
 			for (const waiter of Array.from(session.waiters)) {
-				const resp = this.deliver(session, env);
+				const resp = this.terminalResponse(session) ?? this.deliver(session, env);
 				if (resp) {
 					session.waiters.delete(waiter);
 					waiter(resp);
@@ -175,7 +224,7 @@ export class RunManager {
 	/**
 	 * 尝试把事件按游标投递为一个 wait 响应。
 	 * - 已过游标 → 已投递，返回 null；
-	 * - 终止事件只投递一次（terminalEventDelivered）；
+	 * - 终止状态可重复读取，不因游标前进而丢失；
 	 * - work-ready 对应 run 已终态 → 跳过不投（不推进游标，旧事件保持未投递状态）。
 	 */
 	private deliver(session: TraversalSession, env: Envelope): WaitNextWorkResponse | null {
@@ -187,20 +236,11 @@ export class RunManager {
 			if (isTerminalRun(run.status)) {
 				return null; // 已结束 run 的旧 work-ready 不抢占下一轮等待
 			}
-			if (session.terminalEventDelivered) return null;
+			if (session.terminated) return null;
 			session.cursor = env.eventId;
 			return { event: 'work-ready', run_id: run.id, session_id: session.id };
 		}
-		if (env.type === 'course-finished' || env.type === 'traversal-blocked' || env.type === 'page-invalid') {
-			if (session.terminalEventDelivered) return null;
-			session.terminalEventDelivered = true;
-			session.cursor = env.eventId;
-			return {
-				event: env.type,
-				reason: (env.payload.reason as string) ?? undefined,
-				session_id: session.id
-			};
-		}
+		if (isTraversalTerminalEvent(env.type)) return this.terminalResponse(session);
 		return null;
 	}
 
@@ -218,14 +258,10 @@ export class RunManager {
 				return cached;
 			}
 		}
-		// 先读历史（早于调用的事件不丢失），再挂起等待
-		const immediate = this.nextDeliverable(session);
+		// 终态优先；即使响应曾丢失或客户端换了 request_id，也不会重新进入等待。
+		const immediate = this.terminalResponse(session) ?? this.nextDeliverable(session);
 		if (immediate) {
 			return this.finishWait(session, requestId, immediate);
-		}
-		if (session.terminated) {
-			// 终止事件已投递过（或无新事件）：明确告知，不挂起
-			return { event: 'still-waiting', session_id: session.id };
 		}
 		const resp = await new Promise<WaitNextWorkResponse>((resolve) => {
 			let timer: NodeJS.Timeout | undefined;
@@ -321,6 +357,16 @@ export class RunManager {
 	}): WorkDetectedAck {
 		const { pageKey, frameUrl, frameGen, payload } = params;
 		const session = params.sessionId ? this.sessions.get(params.sessionId) : undefined;
+		if (!session || session !== this.getCurrentSession() || session.terminated || session.pageKey !== pageKey) {
+			const reason = `章节测验未关联有效遍历会话（page=${pageKey}, session=${params.sessionId ?? 'none'}），请先 open_page 课程学习页。`;
+			log.warn(`[traversal] ${reason}`);
+			return { ok: false, reason };
+		}
+		const { courseId, clazzId } = payload.identity;
+		if (session.identity && (courseId !== session.identity.courseId || clazzId !== session.identity.clazzId)) {
+			return { ok: false, reason: '章节测验的课程或班级与遍历会话不匹配。' };
+		}
+		if (courseId && clazzId) session.identity ??= { courseId, clazzId };
 
 		if (this.activeRunId) {
 			// 确认事件重试去重：同一 frame 的同 identity 活跃 run 直接回执原 run
@@ -547,6 +593,9 @@ export class RunManager {
 			throw new McpToolError(`run 状态为 ${run.status}，不能在此状态提交（需要 ready_for_review 或 saved）。`);
 		}
 
+		run.submitAttemptId = randomUUID();
+		run.submitEvidence = undefined;
+		run.submitError = undefined;
 		if (mode === 'temporary') {
 			this.transition(run, 'saving');
 		} else {
@@ -558,6 +607,8 @@ export class RunManager {
 	/** 页面侧提交结果回执（submit-result 事件 / 超时核验） */
 	applySubmitResult(runId: string, mode: 'temporary' | 'confirm', ok: boolean, evidence: string): ManagedRun {
 		const run = this.mustRun(runId);
+		if (isTerminalRun(run.status) || run.status === 'saved') return run;
+		run.submitEvidence = evidence;
 		if (ok) {
 			if (mode === 'temporary') {
 				this.resetReentryCounter(run);
@@ -586,9 +637,10 @@ export class RunManager {
 	/** 提交结果不确定：标记后由调用方 readResult 核验（ADR-0020 §7） */
 	markSubmitUncertain(runId: string, reason: string): ManagedRun {
 		const run = this.mustRun(runId);
+		if (run.status === 'finished' || run.status === 'saved-and-left' || run.status === 'saved') return run;
 		run.submitUncertain = true;
 		run.submitError = reason;
-		this.transition(run, 'ready_for_review');
+		if (!isTerminalRun(run.status)) this.transition(run, 'ready_for_review');
 		return run;
 	}
 
@@ -608,18 +660,14 @@ export class RunManager {
 
 	// ---------- frame 生命周期 ----------
 
-	/** frame document 代次变化：绑定该 frame 的未终态 run 视为分离 → aborted */
-	handleFrameRebirth(frameUrl: string, newGen: string): ManagedRun | undefined {
-		for (const run of this.runs.values()) {
-			if (isTerminalRun(run.status)) continue;
-			if (run.frameGen && run.frameGen !== newGen && (run.frameUrl === frameUrl || sameFrameUrl(run.frameUrl, frameUrl))) {
-				this.transition(run, 'aborted');
-				if (this.activeRunId === run.id) this.activeRunId = null;
-				log.warn(`[run ${run.id}] aborted: frame 分离（document 代次变化 ${run.frameGen} → ${newGen}）`);
-				return run;
-			}
-		}
-		return undefined;
+	/** 仅处理调用方已核对 Frame 引用的精确 run，禁止用 URL 关联不同文档。 */
+	handleRunFrameLost(runId: string, pageKey: string, expectedGen: string): ManagedRun | undefined {
+		const run = this.runs.get(runId);
+		if (!run || isTerminalRun(run.status) || run.pageKey !== pageKey || run.frameGen !== expectedGen) return undefined;
+		this.transition(run, 'aborted');
+		if (this.activeRunId === run.id) this.activeRunId = null;
+		log.warn(`[run ${run.id}] aborted: frame 分离（gen=${expectedGen}）`);
+		return run;
 	}
 
 	/** 页面关闭：该页所有未终态 run → aborted */
@@ -650,18 +698,6 @@ export class RunManager {
 		const run = this.runs.get(runId);
 		if (!run) throw new McpToolError(`run ${runId} 不存在。`);
 		return run;
-	}
-}
-
-/** 宽松 frame URL 相等：忽略查询串（同 frame 重载参数变化不视为分离） */
-function sameFrameUrl(a: string, b: string): boolean {
-	if (a === b) return true;
-	try {
-		const ua = new URL(a);
-		const ub = new URL(b);
-		return ua.origin + ua.pathname === ub.origin + ub.pathname;
-	} catch {
-		return false;
 	}
 }
 

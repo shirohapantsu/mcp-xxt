@@ -1,6 +1,6 @@
 # mcp-xxt 系统总体设计文档
 
-> **文档说明**：本文档汇总并提炼自 `docs/` 目录下的全部设计资产，包括 [开发文档.md](开发文档.md)（v1.2 实施基准）、[21 项架构决策记录（ADR-0001 ~ ADR-0021）](adr/README.md)、[领域术语表（glossary.md）](glossary.md)、四轮外部可行性评审（[v1](feasibility-review.md) / [v2](feasibility-review-v2.md) / [v3](feasibility-review-v3.md) / [v4](feasibility-review-v4.md)）以及三份真实站点端到端验收报告（[章节测验](test-reports/2026-10-24-chapter-e2e.md) / [作业页](test-reports/2026-10-24-homework-e2e.md) / [整课遍历](test-reports/2026-10-24-full-traversal.md)），全面说明项目的整体结构、核心机制与已实现功能。
+> **文档说明**：本文档汇总并提炼自 `docs/` 目录下的全部设计资产，包括 [开发文档.md](开发文档.md)（v1.2 实施基准）、[领域术语表（glossary.md）](glossary.md)、21 项架构决策记录（ADR-0001 ~ ADR-0021）、四轮外部可行性评审结论、三轮真实站点端到端验收记录以及最新的**课程遍历会话边界与提交回执防竞态加固**实现，全面说明项目的整体结构、核心机制与已实现功能。
 
 ---
 
@@ -18,7 +18,7 @@
    - [3.7 权威 Run 状态机与平台保存/提交适配](#37-权威-run-状态机与平台保存提交适配)
    - [3.8 媒体刷课硬禁用与悬浮面板裁剪](#38-媒体刷课硬禁用与悬浮面板裁剪)
 4. [MCP 工具面全景规格（11 个工具）](#4-mcp-工具面全景规格11-个工具)
-5. [架构决策（ADR）与四轮评审演进脉络](#5-架构决策adr与四轮评审演进脉络)
+5. [架构决策（ADR）与演进脉络](#5-架构决策adr与演进脉络)
 6. [测试体系与真实验收状态](#6-测试体系与真实验收状态)
 7. [核心领域术语速查](#7-核心领域术语速查)
 
@@ -60,9 +60,9 @@
 │  宿主与权威控制层：server/（独立 TypeScript 项目）                        │
 │  ├─ tools.ts          11 个 MCP 工具注册、Zod 校验、图片下载封装           │
 │  ├─ run-manager.ts    权威 Run 状态机、300s 单一计时源、事件信封与游标、   │
-│  │                    单活跃 Run 互斥、按 Job 身份的重进计数器             │
+│  │                    课程会话边界与终态保留、单 Run 互斥、身份化重进计数 │
 │  ├─ inject.ts         双向事件路由器（上行 __mcpEvent / 下行 evaluate）、  │
-│  │                    跨源 GM 存储镜像与实时中继                           │
+│  │                    提交尝试 attempt_id 校验、跨源 GM 存储镜像与中继    │
 │  ├─ adapters.ts       平台保存/提交协议封装、超时 readResult 状态核验      │
 │  ├─ answer-encoding.ts 填空 JSON 数组无损编码、分隔符与空位数预校验        │
 │  ├─ login.ts          持久 Profile Cookie 检测、账号密码填充、验证码转人工 │
@@ -73,9 +73,9 @@
 │  页面执行层：ocsjs/（vendor fork，entry-mcp 模式，页面主世界运行）        │
 │  ├─ mcp/bootstrap.ts  幂等守卫 → MCP 模式标记 → GM shim → Frame 桥 → 启动 │
 │  ├─ mcp/gm-shim.ts    localStorage 存储 + 三层变更通知（本帧/同源/跨源）   │
-│  ├─ mcp/bridge.ts     Frame 本地桥 __OCS_MCP_BRIDGE__、待答队列、代次管理  │
+│  ├─ mcp/bridge.ts     Frame 本地桥 __OCS_MCP_BRIDGE__、不可变提交命令快照 │
 │  ├─ mcp/answerer.ts   createMCPAnswerer、[图片N] 占位、应用结果事件发射    │
-│  ├─ mcp/traversal.ts  work-detected 确认制、$.ajax 保存响应捕获、结果探测  │
+│  ├─ mcp/traversal.ts  work-detected 确认制、$.ajax 保存响应捕获、子帧核验  │
 │  ├─ mcp/panel-trim.ts 隐藏题库/搜题/更新/同步/媒体面板，保留监督窗         │
 │  ├─ projects/cx.ts    超星脚本接线（F4）、媒体硬禁用（F5）、双模式适配     │
 │  └─ @ocsjs/core       OCSWorker 调度改造与取消传播（F11）、四题型匹配器    │
@@ -87,29 +87,30 @@
 | 路径 | 模块定位 | 核心内容与职责 |
 |---|---|---|
 | `server/` | MCP Server 主工程 | 独立的 Node.js + TypeScript 项目，承载 Playwright 宿主、权威状态机与 11 个 MCP 工具 |
-| `server/src/index.ts` | 进程入口 | 启动 `McpServer`（stdio 传输）、挂载后台 2s 周期的 `sweepDeadlines` 定时器與优雅退出清理 |
-| `server/src/browser.ts` | 浏览器宿主 | 管理 Chromium 持久化上下文（`.browser-profile/`）、开启 `bypassCSP`、注册 `__mcpEvent` 绑定、注入 IIFE Bundle、提供共享 Cookie 的 `requestBinary` 下载器 |
-| `server/src/inject.ts` | 事件与下行路由 | 分发页面上行事件（`hello`/`storage`/`work-detected`/`question`/`question-result`/`work-completed`/`submit-result` 等），封装向指定 Frame 下发指令与跨源存储中继 |
-| `server/src/run-manager.ts` | 权威状态管理器 | 维护 `TraversalSession`（事件历史、游标、`request_id` 缓存）与 `ManagedRun`（状态机迁移、单 Run 互斥、300s 权威超时、身份化重进计数） |
-| `server/src/adapters.ts` | 保存与提交适配层 | 协调 `submit_paper` 与 `abort_run`，在提交前动态复查页面能力，处理提交超时后的 `readResult` 二次核验 |
+| `server/src/index.ts` | 进程入口 | 启动 `McpServer`（stdio 传输）、挂载后台 10s 周期的 `sweepDeadlines`（含 `ping` 存活探测）定时器与优雅退出清理 |
+| `server/src/browser.ts` | 浏览器宿主 | 管理 Chromium 持久化上下文（`.browser-profile/`）、开启 `bypassCSP`、注册 `__mcpEvent` 绑定、支持导航前 `beforeNavigate` 页面绑定回调、注入 IIFE Bundle、提供 `courseIdentityFromUrl` 解析与共享 Cookie 的 `requestBinary` 下载器 |
+| `server/src/inject.ts` | 事件与下行路由 | 分发页面上行事件，严格核对 `Frame` 引用、代次 `gen`、`session_id` 与提交 `attempt_id`（`matchesAttempt`）；封装单次请求等待清理（`requestResult`）、下行指令投递与跨源存储中继 |
+| `server/src/run-manager.ts` | 权威状态管理器 | 维护 `TraversalSession`（课程身份绑定、后继页接续、事件历史、游标、首个终态持久保留、`request_id` 缓存）与 `ManagedRun`（状态机迁移、`submitAttemptId`、单 Run 互斥、300s 权威超时、身份化重进计数） |
+| `server/src/adapters.ts` | 保存与提交适配层 | 协调 `submit_paper` 与 `abort_run`，在提交前动态复查页面能力，处理提交超时或异常后的 `readResult` 二次核验与权威成功状态重读 |
 | `server/src/answer-encoding.ts` | 答案编码器 | 实现填空题 `JSON.stringify` 数组编码、单空分隔符校验、多选字母/全文编码，保障 `@ocsjs/core` 解析器无损还原 |
 | `server/src/login.ts` | 登录控制器 | 读取 `config/account.json`，检测 Cookie / 个人中心登录态，自动填写手机号与密码，识别 Geetest/易盾验证码并截屏转人工 |
-| `server/src/tools.ts` | MCP 工具定义 | 使用 Zod 定义并注册 11 个 MCP 工具，组装文本与顶层 `image` Content Block |
+| `server/src/tools.ts` | MCP 工具定义 | 使用 Zod 定义并注册 11 个 MCP 工具，组装文本、顶层 `image` Content Block 及 `traversal` 课程状态 |
 | `server/scripts/sync-bundle.mjs` | 构建同步脚本 | 将 `ocsjs` 侧构建产出的 `bundle.iife.js` 同步至 `server/dist-bundle/bundle.iife.js` |
-| `server/tests/` | 自动化测试套件 | 包含答案编码与状态机单元测试、双 Origin 注入冒烟测试、MCP stdio 协议测试及真实站点验收脚本 |
+| `server/tests/` | 自动化测试套件 | 包含单元测试（`answer-encoding` / `run-manager` / `traversal` / `submit-races`）、隔离 Chromium 回归（`submit-browser.mjs`）、双源注入冒烟（`smoke-inject.mjs`）、MCP stdio 测试及真实站点验证/诊断脚本 |
 | `ocsjs/` | 页面端脚本工程 | 基于 `ocsjs` v5.2.3 的 vendor fork（`mcp` 分支），实施 F1～F11 共 11 项受控改造点 |
 | `ocsjs/packages/scripts/entry-mcp.js` | IIFE 打包入口 | 严格按 `bootstrap` → 样式与全局预置 → `trimPanelsForMCP()` → `start(definedProjects())` 顺序启动 |
 | `ocsjs/packages/scripts/src/mcp/` | 页面侧 MCP 核心 | 包含 `bootstrap.ts`、`mode.ts`、`gm-shim.ts`、`bridge.ts`、`answerer.ts`、`traversal.ts`、`panel-trim.ts` |
-| `ocsjs/packages/scripts/src/projects/cx.ts` | 超星平台实现 | 接入 `createMCPAnswerer`、绕过题库门禁、植入全入口媒体硬禁用守卫、接入章节测验与作业提交闸门 |
+| `ocsjs/packages/scripts/src/projects/cx.ts` | 超星平台实现 | 接入 `createMCPAnswerer`、绕过题库门禁、植入全入口媒体硬禁用守卫、注册子 Frame 结果探测 `registerChapterResultProbe`、接入章节测验与作业提交闸门 |
 | `ocsjs/packages/core/src/core/worker/` | 答题引擎核心 | `worker.ts` 与 `question.resolver.ts` 实施 F11 改造（单一权威 Deadline、写前复查、取消 `signal` 穿透） |
 | `skills/mcp-xxt/` | 配套 Agent Skill | 客户端编排规范（`SKILL.md`）、接口依赖声明（`agents/openai.yaml`）、连接构建指南（`references/connection.md`）与工具异常参考（`references/protocol.md`） |
-| `docs/` | 设计与验收文档 | 开发基准文档、21 篇 ADR、术语表、4 轮可行性评审报告、3 份真实站点 E2E 测试报告 |
+| `docs/` | 核心设计文档 | 系统总体设计文档（`design.md`）、开发基准文档（`开发文档.md`）与领域术语表（`glossary.md`） |
+| `LICENSE` | 开源许可声明 | MIT License（保留上游 `ocsjs` 版权声明与本项目二次开发版权声明） |
 
 ---
 
 ## 3. 核心实现功能与机制详解
 
-本项目围绕 `ocsjs` 的 11 项改造点（**F1～F11**）与 `server` 的 20 项设计决议（**D1～D20**）构建了完整的答题闭环。
+本项目围绕 `ocsjs` 的 11 项改造点（**F1～F11**）与 `server` 的 20 项设计决议（**D1～D20**）构建了完整的答题闭环，并在遍历会话边界与提交回执防竞态上实施了深度加固。
 
 ### 3.1 浏览器宿主、注入管线与登录接管
 
@@ -125,7 +126,7 @@
   5. 捕获原生 `window.fetch` 为 `__OCS_NATIVE_FETCH__`（防止学习通页面反爬监控 SDK 包装 `fetch` 后对 `AbortSignal` 抛出 `Illegal invocation`，保障字体解密字库下载正常）；
   6. 注册 `readystatechange` 锚点保底（解决 `document-start` 注入时 `document.body` 为空导致 `easy-us` 悬浮面板 `CustomWindow.mount` 抛错且永不重试的问题）；
   7. 发送上行 `hello` 事件，通知 Server 记录 Frame 代次并下发跨源存储快照。
-- **双通登录与验证码人工接管（ADR-0008 / ADR-0012）**：
+- **双通道登录与验证码人工接管（ADR-0008 / ADR-0012）**：
   `get_login_status` 优先检查 `www.chaoxing.com` 下的 `UID` / `_uid` Cookie，缺失时打开 `i.chaoxing.com` 核验 DOM。`open_login` 自动读取 `server/config/account.json`（或兼容根目录 `passwd.json`）填入手机号与密码；若页面出现 `.geetest_box`、`.yidun_panel` 等验证码组件或登录失败，立即截取当前页面 PNG 作为 `image` Content Block 返回 `{ status: 'need-human' }`，由用户在有头浏览器窗口手动完成后继续。
 
 ### 3.2 GM Shim 兼容层与跨源存储中继
@@ -146,13 +147,15 @@
 
 超星课程页包含多层嵌套 iframe（如顶层 `studentstudy` → `iframe` 知识卡片层 → `doHomeWorkNew` 测验帧），且学校壳域名下可能存在跨域 iframe。因此系统不依赖 `window.top` 共享状态，而是采用 **Server 权威状态 + 全 Frame 独立桥** 架构（**F2 / ADR-0017 / ADR-0020 / ADR-0021**）：
 
-- **上行通道（Frame → Server）**：Playwright `context.exposeBinding('__mcpEvent')` 在所有 Frame 注入全局绑定函数。Server 从回调首个参数 `source` 直接获取真实的 `page` 与 `frame` 引用，结合负载中的 `gen`（Document 代次）追踪 Frame 生命周期。一旦同一 URL 的 Frame 上报了新的 `gen`（发生重载或导航），Server 自动将绑定旧 `gen` 的未终态 Run 迁移至 `aborted`。
-- **下行通道（Server → Frame）**：`EventRouter` 保存 `runId → { frame, url, gen }` 映射，通过 `frame.evaluate` 调用目标 Frame 的 `window.__OCS_MCP_BRIDGE__._onDownlink(msg)`，下发 `bind-run`、`start-manual`、`deadline`、`answer`、`cancel`、`submit`、`read-result` 等指令。
-- **事件信封与 Per-Session 游标投递**：
-  - 每次 `open_page` 命中课程学习页（`/mycourse/studentstudy`）时，Server 创建新的 `TraversalSession` 并返回 `session_id`（同时自动终止该页面上的旧 Session 及其挂起的等待者）。
-  - 所有事件封装为 `Envelope`（含单调递增的 `eventId`、`sessionId`、可选 `runId`、`type`、`payload`、`frame`）。
-  - `wait_next_work` 仅消费四类可投递事件：`work-detected`（转换为 `work-ready`）、`course-finished`、`traversal-blocked`、`page-invalid`。Server 按 `session.cursor` 保证**每个事件至多投递一次**；若事件早于 `wait_next_work` 发生，调用时先扫描历史立即返回，绝不丢失早期事件；若等待超时（默认 60s），返回 `{ event: 'still-waiting' }` 且不推进游标。
-  - **幂等重试与自愈兜底**：`wait_next_work` 支持传入 `request_id`，当客户端因网络或自身超时重发相同 `request_id` 时，Server 直接返回 `requestIdCache` 中已投递的响应，防止跳过当前 `work-ready`；即便客户端未传 `request_id` 导致事件丢失，Agent 也可调用不带参数的 `get_status({})` 重新发现当前未终态的活跃 Run。
+- **上行通道与精确 Frame 生命周期管理（Frame → Server）**：
+  Playwright `context.exposeBinding('__mcpEvent')` 在所有 Frame 注入全局绑定函数。Server 从回调首个参数 `source` 直接获取真实的 `page` 与 `frame` 对象引用，并在 `EventRouter.runFrames` 中记录 `{ pageKey, frame, url, gen }`。
+  - **精确 Frame 分离判定（`handleRunFrameLost`）**：收到 `hello` 事件时，Server 仅比对**同一 `pageKey` 且同一 Playwright `Frame` 对象引用**（绝不按宽松 URL 匹配误伤后继同 URL 章节）；同时通过 `frame.evaluate` 读取当前页面桥的实时 `liveGen` 进行核验，排除迟到的旧文档 `hello` 事件后，才将该 Frame 上旧 `gen` 的未终态 Run 迁移至 `aborted`。
+- **下行通道与双重身份校验（Server → Frame）**：
+  `EventRouter.sendToRun` 通过 `frame.evaluate` 调用目标 Frame 的 `window.__OCS_MCP_BRIDGE__._onDownlink(msg)`，并在浏览器上下文内强制校验 `bridge.gen === gen` 且（除 `bind-run` 外）`bridge.currentRun?.runId === runId`。若 Frame 已更换文档或 Run，立即抛错并触发 `handleRunFrameLost`。手动模式 `pushBindRun` 在绑定前强制从目标 Frame 实时读取真实 `__OCS_MCP_BRIDGE__.gen` 写入 `run.frameGen`。
+- **事件信封、课程会话边界与 Per-Session 游标投递**：
+  - **导航前绑定与课程身份接续（`CourseIdentity` & `resolveSessionPage`）**：每次 `open_page` 命中课程学习页（`/mycourse/studentstudy`）时，在调用 `page.goto` **之前**（通过 `beforeNavigate` 回调）即将新建的 `TraversalSession` 绑定到实际 `Page` 并提取 `CourseIdentity { courseId, clazzId }`，确保导航期间直接结束的无测验课程事件也不会丢失。当课程遍历产生同课程、同班级的后继学习页时，`resolveSessionPage` 自动将 Session 接续到新页面；已被替换的旧页面、不同课程/班级的页面或携带旧 `session_id` 的迟到事件一律被拒绝。课程模式的 `work-detected` 必须关联有效且身份匹配的当前 Session，严禁脱离 Session 创建孤立 Run。
+  - **游标投递与终态持久保留**：所有事件封装为 `Envelope`（含单调递增的 `eventId`、`sessionId`、可选 `runId`、`type`、`payload`、`frame`）。`wait_next_work` 处理四类事件：`work-detected`（转换为 `work-ready`）按 `session.cursor` **至多投递一次**；而三个终止事件（`course-finished`、`traversal-blocked`、`page-invalid`）会将首个到达的事件持久保存在 `session.terminalEvent` 并唤醒全部并发等待者（后续页面关闭或迟到事件不会覆盖首个权威终态）。此后对该 Session 的任何 `wait_next_work` 调用（即使更换了 `request_id`）均直接返回该终态，仅在未终止会话等待超时时才返回 `{ event: 'still-waiting' }`。
+  - **幂等重试与状态自愈兜底**：`wait_next_work` 支持传入 `request_id`，客户端超时重试相同 `request_id` 时直接返回 `requestIdCache` 缓存响应；Agent 也可随时调用缺省参数的 `get_status({})`：有活跃 Run 时返回该 Run 详情，无活跃 Run 时正常返回 `{ status: 'no-run' }`（不报错），且始终附带 `traversal: { session_id, status, reason? }` 报告当前课程会话的遍历状态与终止原因。
 
 ### 3.4 双入口控制流与课程遍历导航
 
@@ -160,12 +163,12 @@
 
 1. **课程遍历模式（脚本驱动，自动建 Run）**：
    - 在超星 `study` 脚本中，MCP 模式下强制将跳转模式预设为 `mode = 'next'`（顺序推进下一小节，避免因媒体任务点被禁用未完成而卡在 `job` 模式），并绕过 `searchJob`（`cx.ts:1712`）、`chapter()` 入口（`cx.ts:1959`）与章节自建 `answerer`（`cx.ts:2032`）三处题库配置门禁。
-   - 当 `JobRunner` 遇到章节测验进入 `chapterWithMCP()` 时，首先发送 `work-detected` 事件并 `await` Server 回执（**确认制**）。Server 校验无活跃 Run 冲突且重进计数未超限后，创建 `mode: 'course'` 的 `ManagedRun`，唤醒 Agent 的 `wait_next_work` 返回 `{ event: 'work-ready', run_id, session_id }`，并向页面回执 `{ ok: true, run_id }`，页面这才启动 `OCSWorker` 注册题目。
+   - 当 `JobRunner` 遇到章节测验进入 `chapterWithMCP()` 时，首先发送 `work-detected` 事件并 `await` Server 回执（**确认制**）。Server 校验 Session 有效、课程/班级身份匹配、无活跃 Run 冲突且重进计数未超限后，创建 `mode: 'course'` 的 `ManagedRun`，唤醒 Agent 的 `wait_next_work` 返回 `{ event: 'work-ready', run_id, session_id }`，并向页面回执 `{ ok: true, run_id }`，页面随即调用 `registerChapterResultProbe(frame, identity)` 锁定子 Frame 核验器并启动 `OCSWorker` 注册题目。
    - **身份化重进计数**：Server 按 `courseId|clazzId|chapterId|jobId` 统计同一测验连续进入次数。同一章节下的多个不同测验因 `jobId` 不同互不累计；一旦任一测验成功暂存（`saved-and-left`）或交卷（`finished`），立即重置该身份的计数器；若同一测验连续第 3 次进入仍未取得进展，Server 判定闯关受阻，拒绝建 Run 并向 Session 发射 `traversal-blocked`。
-   - **遍历终止出口分类**：当全部章节推进完毕时上报 `course-finished`；当遇到章节锁定（`cx.ts:1481`）、无法跳转下一章或最后一个章节仍有未完成任务点（`cx.ts:1567`）时上报 `traversal-blocked`（附具体原因）；当页面异常重定向时上报 `page-invalid`。
+   - **遍历终止出口分类**：当全部章节推进完毕时上报 `course-finished`；当遇到章节锁定（`cx.ts:1481`）、无法跳转下一章或最后一个章节仍有未完成任务点（`cx.ts:1567`）时上报 `traversal-blocked`（附具体原因）；当页面异常重定向或课程改变时上报 `page-invalid`。
 2. **独立作业/练习模式（Agent 驱动，手动建 Run）**：
    - 针对独立作业页（`/mooc2/work/dowork`）、整卷预览（`/mooc2/exam/preview`）与随堂练习（`/page/quiz/stu/answerQuestion2`），在 `commonWork` 中抑制了原有的 `oncomplete` 5 秒倒计时自动启动，改为向 Frame 桥注册 `registerManualWork` 外部启动器与惰性能力探测函数 `mcpRegisterSubmitCapabilities`。
-   - Agent 导航至页面后显式调用 `start_work`，Server 轮询探测页面的真实代次 `gen` 与保存/提交能力（`capabilities`），创建 `mode: 'manual'` 的 `ManagedRun`，随后下发 `bind-run` 与 `start-manual` 指令触发页面开始抓题。
+   - Agent 导航至页面后显式调用 `start_work`，Server 轮询探测页面的保存/提交能力（`capabilities`），创建 `mode: 'manual'` 的 `ManagedRun`，随后在 `pushBindRun` 中读取页面桥的真实 `gen` 绑定 Run 并下发 `start-manual` 指令触发页面开始抓题。
 
 ### 3.5 拉取式答题协议、答案编码与图片题管线
 
@@ -192,13 +195,13 @@
 
 为此，**F11** 在 `packages/core/src/core/worker/worker.ts`、`question.resolver.ts` 与 `cx.ts` 实施了精细改造：
 
-1. **单一权威 Deadline（300s）**：`WorkOptions` 新增 `requestTimeoutMs?: number | false`。MCP 模式下传入 `false`，禁用 Worker 内部的 70s 派生超时；每题超时完全由 Server 在题目入队时计算的 300s 权威 `deadline`（下发至 Frame 桥定时器，并由 Server `sweepDeadlines` 兜底）统一裁决。
+1. **单一权威 Deadline（300s）**：`WorkOptions` 新增 `requestTimeoutMs?: number | false`。MCP 模式下设安全上限 `330_000` ms，单题 300s 超时完全由 Server 在题目入队时计算的权威 `deadline`（下发至 Frame 桥定时器，并由 Server 10s 周期的 `sweepDeadlines` 结合 `ping` 探测兜底）统一裁决。
 2. **全链路取消 Signal 穿透**：
-   - `WorkContext` 新增 `isCancelled?: () => boolean` 钩子，绑定 `() => this.isClose || Boolean(this.opts.isCancelled?.())`。
-   - 在 `worker.ts` 中，`await waitForRequested` 返回后、调用 `work` handler 写入 DOM 前，强制复查 `isClose` 与 `ctx.isCancelled()`；若已取消则立即跳过 DOM 写入。
-   - 在 `question.resolver.ts` 中，`single`、`multiple`（逐项勾选循环的每一步前）、`judgement`、`completion`（逐空填写循环的每一步前）均检查 `ctx?.isCancelled?.()`，一旦取消立即中断后续操作并返回 `{ finish: false }`。
-   - 在 `cx.ts` 的自定义题目 handler 中，每次点击选项或填写输入框并 `await $.sleep(500)` 前后均检查取消状态。
-3. **DOM 根节点观察器兜底**：超星各场景的 `OCSWorker` 均启用 `rootObserver: true`，当题目容器从 DOM 移除时自动触发 Worker 关闭。
+   - `WorkContext` 新增取消检查钩子，绑定 Worker 的关闭与取消状态。
+   - 在 `worker.ts` 中，`await waitForRequested` 返回后、调用 `work` handler 写入 DOM 前，强制复查取消状态；若已取消则立即跳过 DOM 写入。
+   - 在 `question.resolver.ts` 中，`single`、`multiple`（逐项勾选循环的每一步前）、`judgement`、`completion`（逐空填写循环的每一步前）均检查取消状态，一旦取消立即中断后续操作并返回 `{ finish: false }`。
+   - 在 `cx.ts` 的自定义题目 handler 中，每次点击选项或填写输入框前后均检查 `ctx.cancelled?.()`。
+3. **DOM 根节点观察器兜底**：超星各场景的 `OCSWorker` 均启用 `rootObserver: { enabled: true }`，当题目容器从 DOM 移除时自动触发关闭并通知 `page-invalid`。
 
 ### 3.7 权威 Run 状态机与平台保存/提交适配
 
@@ -221,19 +224,35 @@ ready_for_review ─────────────────────
   └─ submit_paper('confirm') ──────────────────────────────────▶ submitting
                                                                    ├─ 成功 ──▶ finished (终态)
                                                                    ├─ 失败 ──▶ 退回 ready_for_review
-                                                                   └─ 超时不确定 ──▶ readResult 核验
+                                                                   └─ 超时或执行异常(uncertain) ──▶ readResult 子帧身份核验
                                                                         ├─ 核验已交 ──▶ finished (终态)
                                                                         └─ 仍不确定 ──▶ ready_for_review (置 submit_uncertain=true，禁止盲目重交)
 
 * 任意非终态下调用 abort_run(reason) ──▶ released (当 reason==='manual-saved') 或 aborted (其他原因，终态)
-* Frame 重生(代次变化) / 页面关闭 ──▶ aborted (终态)
+* 同 Page 同 Frame 引用代次变化 / 页面关闭 ──▶ aborted (终态)
 ```
 
-#### 平台保存与提交适配器（F6 / F10 / ADR-0018）
+#### 提交回执防竞态与子 Frame 身份核验机制
+
+在连续章节测验提交或提交后触发跨域跳转的场景下，为了确保回执绝不丢失、绝不串号：
+
+1. **提交尝试唯一标识（`submitAttemptId`）与不可变 `SubmitCommand`**：
+   - 每次调用 `RunManager.submitPaper` 时生成唯一 UUID `submitAttemptId`，随下行 `submit` 指令（`{ kind: 'submit', mode, run_id, attempt_id }`）一同下发。
+   - 页面桥 `waitSubmitCommand()` 在收到指令时立即构造不可变的 `SubmitCommand { mode, runId, sessionId, gen, attemptId }` 快照；异步提交执行完毕后，`sendSubmitResult(command, ok, evidence, uncertain)` 严格使用该快照中的身份字段上报，即使期间 `bridge.currentRun` 已被下一章节替换也不会串号。
+   - Server 侧 `EventRouter.matchesAttempt` 严格校验 `frame` 引用、`pageKey`、`gen`、`run.frameGen`、`attempt_id === run.submitAttemptId` 与 `session_id === run.sessionId`，拒绝一切过期的旧尝试回执；终态（`finished`/`saved-and-left`/`aborted`/`released`）与已暂存态（`saved`）不受迟到失败回执或超时标记的回退影响。
+2. **Ajax 证据优先捕获与跨域导航 `SecurityError` 防护（`installSaveCapture`）**：
+   - 在包装 `jq.ajax` 的 `success` 回调中，**在调用平台原始回调之前先将响应数据推入 `capture.ajax`**（防止平台回调立即触发页面导航或抛错导致证据丢失）。
+   - `capture.restore()` 直接操作闭包保存的原文档 `jq` 对象并比对 `frameWindow.document === originalDocument` 与包装函数引用相等性，避免在子 Frame 发生跨域重定向后读取 `win.$` / `win.alert` 触发 `DOMException: SecurityError`，同时将任何清理期异常经 `reportSubmitError` 安全同步至 Server 日志而不掩盖已捕获的成功回执。
+   - 若提交执行过程抛出异常且未捕获到 Ajax/Toast 结论，页面侧将其标记为 `uncertain: true` 上报，强制交由 Server 端 `Adapters.executeSubmit` 进入 `readResult` 核验与 `submit_uncertain` 保护流程，防止误判为可盲目重试的普通失败。
+3. **绑定任务身份的子 Frame 结果核验（`registerChapterResultProbe` & `probeChapterResult`）**：
+   - 章节测验脚本运行在外层 `cards` Frame，而实际表单与结果页位于子 `iframe`。`registerChapterResultProbe(frame, identity)` 在测验启动时提取并锁定子 `iframe` 的任务身份（兼容 URL 参数与隐藏 input 的 `courseId`、`clazzId`、`chapterId`、`jobId`、`workId`、`workAnswerId`）。
+   - 当收到 `read-result` 核验请求时，在当前或重建后的候选 `iframe` 中逐一核对锚点身份（`jobId`/`workAnswerId`/`workId` 及 `courseId`/`clazzId`），拒绝下一章节或跨域 Frame；并在匹配的测验子 Frame 内检查 `.testTit_status_complete` 或 `/work/(selectWorkQuestionYiPiYue|view)` 路由判定 `submitted`，明确**可编辑表单中存在已填答案不作为已暂存证据（`saved: false`）**。
+
+#### 平台保存与提交适配器汇总（F6 / F10 / ADR-0018）
 
 | 页面场景 | 入口模式 | `auto_save` (`temporary`) | `auto_submit` (`confirm`) | 页面侧执行与确认机制 |
 |---|---|---|---|---|
-| **章节测验** (`doHomeWorkNew` 帧) | 课程遍历 (`wait_next_work`) | `true` | `true` | `temporary` 调用 `noSubmit()`（底层 `saveWork()` 带 `tempsave=1`）；`confirm` 调用 `btnBlueSubmit()` + `submitCheckTimes()`。包装帧内 `$.ajax` 捕获 `/work/addStudentWorkNew` 响应 JSON 的 `data.status` 为权威成功证据（排除 `/work/validate`），`$.toast` / `alert` 为辅助证据。提交闸门采用 `while` 循环，保存失败时停留在当前测验等待重试指令，成功或取消后才释放遍历继续跳转。 |
+| **章节测验** (`doHomeWorkNew` 帧) | 课程遍历 (`wait_next_work`) | `true` | `true` | `temporary` 调用 `noSubmit()`（底层 `saveWork()` 带 `tempsave=1`）；`confirm` 调用 `btnBlueSubmit()`（前 3s 每 100ms 轮询证据，未完成再调 `submitCheckTimes()`）。捕获 `/work/addStudentWorkNew` 响应 JSON 的 `data.status` 为权威成功证据（排除 `/work/validate`），`$.toast` / `alert` 为辅助证据。提交闸门采用 `while` 循环，保存失败时停留在当前测验等待重试指令，成功或取消后才释放遍历继续跳转。 |
 | **独立作业页** (`/mooc2/work/dowork`) | 手动启动 (`start_work`) | `true` (动态探测 `saveWork`) | `false` | 页面加载时注册惰性能力探测 `typeof window.saveWork === 'function'`。`temporary` 调用 `saveWork()` 并捕获 `$.ajax` 响应 JSON `status=true` 确认暂存成功，状态进入 `saved`；收尾时调用 `abort_run(reason: 'manual-saved')` 进入 `released` 终态。`confirm` 因 `auto_submit=false` 在 Server 侧安全拦截并返回结构化 `unsupported`。 |
 | **整卷预览 / 随堂练习** | 手动启动 (`start_work`) | 动态探测（默认 `false`） | `false` | 完成填答进入 `ready_for_review`；若页面无自动保存函数，`submit_paper` 诚实返回 `unsupported`，提示用户人工保存后调用 `abort_run(reason: 'manual-saved')` 释放 Run。 |
 
@@ -259,64 +278,62 @@ Server 通过 `@modelcontextprotocol/sdk` 在 stdio 上暴露 11 个工具（无
 |---|---|---|---|
 | `open_login` | `{}` | `{ status: 'ok' \| 'need-human' \| 'failed', detail }`（必要时顶层附带截图 `image` block） | 打开超星登录页，自动尝试 `server/config/account.json` 账号密码；遇验证码或风控立即截屏返回 `need-human` 转人工处理。 |
 | `get_login_status` | `{}` | `{ loggedIn: boolean, detail: string }` | 检查持久化 Profile 中的登录 Cookie（`UID`/`_uid`）或个人中心状态。 |
-| `open_page` | `{ url: string }` | `{ url, title, session_id? }` | 通用页面导航。当 URL 匹配课程学习页（`/mycourse/studentstudy`）时创建新 `TraversalSession` 并返回 `session_id`（同时终止旧 Session）。 |
-| `start_work` | `{}` | `{ run_id: string }` | **手动模式入口**（独立作业/考试预览/随堂练习页）。动态探测页面保存能力并创建手动 Run；课程遍历模式下严禁调用。 |
-| `wait_next_work` | `{ timeout_s?: number, request_id?: string }` | `{ event: 'work-ready' \| 'still-waiting' \| 'course-finished' \| 'traversal-blocked' \| 'page-invalid', run_id?, session_id?, reason? }` | **课程遍历模式核心阻塞工具**。按 Session 游标投递事件；超时默认 60s 返回 `still-waiting`（不消耗事件）；客户端超时重试可传相同 `request_id` 获取缓存响应。 |
-| `get_status` | `{ run_id?: string }` | `{ run_id, mode, status, capabilities, work_completed, question_count, questions: [...], submit_uncertain, submit_error }` | 查询指定或当前活跃 Run 的完整状态、动态能力标志与逐题应用结果（生成**逐题审核单**的唯一权威数据源；事件丢失时可缺省 `run_id` 重新发现活跃 Run）。 |
+| `open_page` | `{ url: string }` | `{ url, title, session_id? }` | 通用页面导航。当 URL 匹配课程学习页（`/mycourse/studentstudy`）时在导航前绑定实际 Page、记录课程身份并创建新 `TraversalSession` 返回 `session_id`（同时终止旧 Session）。 |
+| `start_work` | `{}` | `{ run_id: string }` | **手动模式入口**（独立作业/考试预览/随堂练习页）。动态探测页面保存能力、绑定真实页面桥代次 `gen` 并创建手动 Run；课程遍历模式下严禁调用。 |
+| `wait_next_work` | `{ timeout_s?: number, request_id?: string }` | `{ event: 'work-ready' \| 'still-waiting' \| 'course-finished' \| 'traversal-blocked' \| 'page-invalid', run_id?, session_id?, reason? }` | **课程遍历模式核心阻塞工具**。`work-ready` 按 Session 游标至多投递一次；三个终止事件持久保留首个终态，后续等待仍返回该终态；超时默认 60s 返回 `still-waiting`；客户端超时重试可传相同 `request_id` 获取缓存响应。 |
+| `get_status` | `{ run_id?: string }` | `{ run_id?, mode?, status, capabilities?, work_completed?, question_count?, questions?, submit_uncertain?, submit_error?, traversal? }` | 查询指定或当前活跃 Run 的状态与逐题结果（生成**逐题审核单**的唯一权威数据源）。缺省 `run_id` 且无活跃 Run 时正常返回 `status: 'no-run'`（不报错）；存在课程 Session 时附带 `traversal: { session_id, status, reason? }`。 |
 | `get_pending_questions` | `{ run_id: string }` | `{ questions: [{ id, type, title, options?, images?, blankCount? }] }`（题图位于工具结果顶层 `content` 的 `image` block） | 获取当前状态为 `pending` 的待答题目。题图由 Server 携带 Cookie 下载后置于顶层 `content`。注意：**`pending` 为空不代表整卷完成**，必须以 `get_status` 的 `ready_for_review` 为准。 |
 | `submit_answer` | `{ run_id: string, question_id: string, answer: string \| string[] \| null }` | `{ question_id, status: 'answered' \| 'skipped' }` | 回填单道题答案。填空题推荐传 `string[]`（JSON 编码）；传 `null` 显式跳过该题；已非 `pending` 的题目重复回填会返回明确错误。 |
 | `submit_answers` | `{ run_id: string, answers: Array<{ question_id, answer }> }` | `{ results: Array<{ question_id, ok: boolean, error? }> }` | 批量回填答案。逐题独立校验与下发，部分失败不影响其余题目。 |
-| `submit_paper` | `{ run_id: string, mode: 'temporary' \| 'confirm' }` | `{ status: 'saved' \| 'saved-and-left' \| 'finished' \| 'failed' \| 'uncertain' \| 'unsupported', evidence?, message? }` | 提交或暂存试卷。仅在 `ready_for_review` 或手动 `saved` 状态下可用；`temporary` 为暂存（课程模式成功后进入 `saved-and-left` 终态并继续遍历，手动模式进入 `saved`）；`confirm` 为正式交卷。 |
+| `submit_paper` | `{ run_id: string, mode: 'temporary' \| 'confirm' }` | `{ status: 'saved' \| 'saved-and-left' \| 'finished' \| 'failed' \| 'uncertain' \| 'unsupported', evidence?, run_status?, message? }` | 提交或暂存试卷。每次提交绑定唯一 `attempt_id`；`temporary` 为暂存（课程模式成功后进入 `saved-and-left` 终态并继续遍历，手动模式进入 `saved`）；`confirm` 为正式交卷；超时或执行异常先经子 Frame 身份核验，仍不确定时标记 `submit_uncertain` 禁止盲目重交。 |
 | `abort_run` | `{ run_id: string, reason?: string }` | `{ run_id, status: 'aborted' \| 'released' }` | 终止当前 Run 并向页面广播取消 `signal` 停止一切等待与 DOM 写入。当 `reason === 'manual-saved'` 时终态记为 `released`，否则记为 `aborted`。 |
 
 ---
 
-## 5. 架构决策（ADR）与四轮评审演进脉络
+## 5. 架构决策（ADR）与演进脉络
 
-项目在设计阶段经历了三轮架构访谈（沉淀为 **ADR-0001 ~ ADR-0015**）和四轮严格的源码级可行性审查（沉淀为 **ADR-0016 ~ ADR-0021**，最终在 [第四次审查](feasibility-review-v4.md) 中全部闭合）：
+项目在设计阶段经历了三轮架构访谈（沉淀为 **ADR-0001 ~ ADR-0015**）、四轮源码级可行性审查（沉淀为 **ADR-0016 ~ ADR-0021**）以及实施后的**遍历会话边界与提交竞态加固**：
 
-| ADR 编号 | 决策主题 | 核心结论与演进说明 |
+| 编号 / 阶段 | 决策主题 | 核心结论与演进说明 |
 |---|---|---|
-| [ADR-0001](adr/0001-playwright-injection.md) | 浏览器宿主 | MCP Server 内置 Playwright 有头 Chromium + 持久 Profile，以 `addInitScript` 注入改造后的单文件 Bundle，不依赖油猴扩展或 OCS 桌面端。 |
-| [ADR-0002](adr/0002-project-layout.md) | 项目组织 | `ocsjs/` 作为 vendor fork 保留在仓库内（便于跟进上游修复），`server/` 作为独立 TypeScript 项目通过 stdio 暴露 MCP 服务。 |
-| [ADR-0003](adr/0003-scope-cx-only.md) | 平台范围 | 仅聚焦超星学习通（`cx`），其余 5 个网课平台源码保留但不在 MCP 工具面暴露。 |
-| [ADR-0004](adr/0004-pull-based-answer-protocol.md) | 答题交互协议 | 采用拉取式双工具（`get_pending_questions` + `submit_answers`），`createMCPAnswerer` 保持 `SearchInformation[]` 返回契约以复用核心题型匹配器。 |
-| [ADR-0005](adr/0005-no-auto-submit.md) | 提交安全边界 | 废弃完成率阈值自动交卷，交卷由独立工具 `submit_paper(mode)` 显式触发，默认 `temporary` 暂存。 |
-| [ADR-0006](adr/0006-keep-ui.md) | 保留悬浮面板 | 保留 `easy-us` 页面悬浮面板作为人类监督窗口，裁剪无关配置项。 |
-| [ADR-0007](adr/0007-mcp-tool-surface.md) | MCP 工具面与超时 | 定义以 `run_id` 为句柄的生命周期工具面；单题等待 Agent 回填上限设为 300s，超时标记 `timeout` 继续流程。 |
-| [ADR-0008](adr/0008-login.md) | 双通道登录态 | 持久 Profile Cookie 自动复用 + `server/config/account.json` 账号密码自动填充。 |
-| [ADR-0009](adr/0009-disable-not-delete.md) | 禁用而非删除 | 刷课代码通过模式守卫禁用而不删除源码，保留自动跳转框架作为课程遍历导航骨架。 |
-| [ADR-0010](adr/0010-image-questions.md) | 图片题协议 | 题干/选项图片转为 `[图片N]` 占位符，图片数据以 Base64 编码通过 MCP `image` Content Block 传递给 Agent。 |
-| [ADR-0011](adr/0011-skill-superseded.md) | 技能定位重构 | 旧版独立自动化脚本退役，MCP Server 成为唯一自动化执行引擎，`skills/mcp-xxt` 作为纯客户端编排层说明。 |
-| [ADR-0012](adr/0012-captcha-human-handoff.md) | 验证码人工接管 | 遇到登录或答题验证码/风控一律截屏返回 `need-human`，由人工在有头浏览器中完成，绝不打码绕过。 |
-| [ADR-0013](adr/0013-single-run.md) | 单活跃 Run 互斥 | 同一时刻全局最多允许一个未终态 Run，消除多页面/多测验并发状态混乱。 |
-| [ADR-0014](adr/0014-hard-disable-media.md) | 媒体硬禁用 | 在代码分支入口基于不可变 MCP 模式标记硬短路媒体任务，即便用户在面板手动勾选配置也绝不执行。 |
-| [ADR-0015](adr/0015-script-driven-traversal.md) | 控制流反转 | 课程模式下由页面脚本按 `mode='next'` 驱动遍历，遇章节测验上报 `work-detected`，Agent 通过 `wait_next_work` 阻塞等待介入。 |
-| [ADR-0016](adr/0016-worker-wait-cancel.md) | Worker 调度层改造（一审修订） | 解决 `worker.ts` 70s 硬编码超时吞掉 300s 回填、取消后仍写入 DOM 及 `cx` 缺少 `rootObserver` 三大问题（新增改造点 F11）。 |
-| [ADR-0017](adr/0017-bridge-and-run-state.md) | 跨 Frame 桥与状态机（一审修订） | 废除不可靠的 `window.top` 跨域假设，改用 `exposeBinding('__mcpEvent')` + Server 权威状态机；引入 `work-detected` 确认制与遍历出口三分类。 |
-| [ADR-0018](adr/0018-platform-save-submit-adapters.md) | 平台保存/提交适配器（一审修订） | 针对章节测验与作业/考试保存能力不对称问题，设计能力标志与适配器接口（新增改造点 F10），以真实请求响应确认提交结果。 |
-| [ADR-0019](adr/0019-review-misc-amendments.md) | 评审杂项补全（一审修订） | 补全 `/readsvr/book/mooc` 与 `timereader` 媒体守卫、确立图片由 Server `context.request` 下载、修复 `normalizeToPngDataUrl` 字节缺陷、规定单一 IIFE Bootstrap 顺序。 |
-| [ADR-0020](adr/0020-review-v2-amendments.md) | 二次评审修订 | 强制实现 `GM_addValueChangeListener` 防止 `easy-us` 静默挂起；增补 `saved-and-left` 与 `released` 终态；确立 `question-result` + `work-completed` 驱动 `ready_for_review`；引入事件游标、取消 Signal 穿透至 Handler 层、按 Job 身份重进计数及 `auto_save`/`auto_submit` 能力拆分。 |
-| [ADR-0021](adr/0021-review-v3-amendments.md) | 三次评审修订 | 补全跨源 Frame 的 Server 存储镜像与通知中继（解决 `BroadcastChannel` 仅限同源的局限）；填空题改用 `JSON.stringify` 数组编码（解决 `["C#"]` 等分隔符误拆）；完善 `open_page` 的 `session_id` 生命周期与 `wait_next_work` 的 `request_id` 缓存重试边界。 |
+| **ADR-0001** | 浏览器宿主 | MCP Server 内置 Playwright 有头 Chromium + 持久 Profile，以 `addInitScript` 注入改造后的单文件 Bundle，不依赖油猴扩展或 OCS 桌面端。 |
+| **ADR-0002** | 项目组织 | `ocsjs/` 作为 vendor fork 保留在仓库内（便于跟进上游修复），`server/` 作为独立 TypeScript 项目通过 stdio 暴露 MCP 服务。 |
+| **ADR-0003** | 平台范围 | 仅聚焦超星学习通（`cx`），其余 5 个网课平台源码保留但不在 MCP 工具面暴露。 |
+| **ADR-0004** | 答题交互协议 | 采用拉取式双工具（`get_pending_questions` + `submit_answers`），`createMCPAnswerer` 保持 `SearchInformation[]` 返回契约以复用核心题型匹配器。 |
+| **ADR-0005** | 提交安全边界 | 废弃完成率阈值自动交卷，交卷由独立工具 `submit_paper(mode)` 显式触发，默认 `temporary` 暂存。 |
+| **ADR-0006** | 保留悬浮面板 | 保留 `easy-us` 页面悬浮面板作为人类监督窗口，裁剪无关配置项。 |
+| **ADR-0007** | MCP 工具面与超时 | 定义以 `run_id` 为句柄的生命周期工具面；单题等待 Agent 回填上限设为 300s，超时标记 `timeout` 继续流程。 |
+| **ADR-0008** | 双通道登录态 | 持久 Profile Cookie 自动复用 + `server/config/account.json` 账号密码自动填充。 |
+| **ADR-0009** | 禁用而非删除 | 刷课代码通过模式守卫禁用而不删除源码，保留自动跳转框架作为课程遍历导航骨架。 |
+| **ADR-0010** | 图片题协议 | 题干/选项图片转为 `[图片N]` 占位符，图片数据以 Base64 编码通过 MCP `image` Content Block 传递给 Agent。 |
+| **ADR-0011** | 技能定位重构 | 旧版独立自动化脚本退役，MCP Server 成为唯一自动化执行引擎，`skills/mcp-xxt` 作为纯客户端编排层说明。 |
+| **ADR-0012** | 验证码人工接管 | 遇到登录或答题验证码/风控一律截屏返回 `need-human`，由人工在有头浏览器中完成，绝不打码绕过。 |
+| **ADR-0013** | 单活跃 Run 互斥 | 同一时刻全局最多允许一个未终态 Run，消除多页面/多测验并发状态混乱。 |
+| **ADR-0014** | 媒体硬禁用 | 在代码分支入口基于不可变 MCP 模式标记硬短路媒体任务，即便用户在面板手动勾选配置也绝不执行。 |
+| **ADR-0015** | 控制流反转 | 课程模式下由页面脚本按 `mode='next'` 驱动遍历，遇章节测验上报 `work-detected`，Agent 通过 `wait_next_work` 阻塞等待介入。 |
+| **ADR-0016** | Worker 调度层改造（一审） | 解决 `worker.ts` 70s 硬编码超时吞掉 300s 回填、取消后仍写入 DOM 及 `cx` 缺少 `rootObserver` 三大问题（新增改造点 F11）。 |
+| **ADR-0017** | 跨 Frame 桥与状态机（一审） | 废除不可靠的 `window.top` 跨域假设，改用 `exposeBinding('__mcpEvent')` + Server 权威状态机；引入 `work-detected` 确认制与遍历出口三分类。 |
+| **ADR-0018** | 平台保存/提交适配器（一审） | 针对章节测验与作业/考试保存能力不对称问题，设计能力标志与适配器接口（新增改造点 F10），以真实请求响应确认提交结果。 |
+| **ADR-0019** | 评审杂项补全（一审） | 补全 `/readsvr/book/mooc` 与 `timereader` 媒体守卫、确立图片由 Server `context.request` 下载、修复 `normalizeToPngDataUrl` 字节缺陷、规定单一 IIFE Bootstrap 顺序。 |
+| **ADR-0020** | 二次评审修订（二审） | 强制实现 `GM_addValueChangeListener` 防止 `easy-us` 静默挂起；增补 `saved-and-left` 与 `released` 终态；确立 `question-result` + `work-completed` 驱动 `ready_for_review`；引入事件游标、取消 Signal 穿透至 Handler 层、按 Job 身份重进计数及 `auto_save`/`auto_submit` 能力拆分。 |
+| **ADR-0021** | 三次评审修订（三审/四审闭合） | 补全跨源 Frame 的 Server 存储镜像与通知中继（解决 `BroadcastChannel` 仅限同源的局限）；填空题改用 `JSON.stringify` 数组编码（解决 `["C#"]` 等分隔符误拆）；完善 `open_page` 的 `session_id` 生命周期与 `wait_next_work` 的 `request_id` 缓存重试边界。 |
+| **运行期加固** | 遍历会话边界与提交竞态加固 | ① `open_page` 导航前绑定实际 Page 与 `CourseIdentity`，支持同课程同班级后继页自动接续 Session，拒绝跨课程/无会话孤立事件；② Session 首个终态持久保留供重复读取，`get_status({})` 无活跃 Run 时正常返回 `no-run` + `traversal` 状态；③ 引入 `submitAttemptId` 与不可变 `SubmitCommand` 快照、跨域导航 `SecurityError` 清理保护、基于真实 `Frame` 引用的 `hello` 失效判定以及绑定任务身份的子 Frame `readResult` 核验。 |
 
 ---
 
 ## 6. 测试体系与真实验收状态
 
-项目在 `server/tests/` 下构建了从纯函数单元、本地多源注入冒烟、MCP 协议层到真实超星站点端到端验收的四级验证体系：
+项目在 `server/tests/` 下构建了涵盖单元测试、隔离浏览器回归、双源注入冒烟、MCP 协议层及真实超星站点端到端验收的完整验证体系：
 
 | 测试层级 | 脚本路径 | 验证内容 | 当前状态 |
 |---|---|---|---|
-| **单元测试** | `server/tests/answer-encoding.test.mjs`<br>`server/tests/run-manager.test.mjs` | 覆盖填空 JSON 数组编码 6 类边界（双空、内部含 `===`、单空 `["C#"]`、多分隔符、引号反斜线、嵌套 JSON 文本）、多选编码、Run 状态机全路径迁移、Session 游标投递、`request_id` 缓存、单 Run 互斥、按 Job 身份重进计数与进展重置。 | ✅ 全部通过 |
+| **核心单元测试** (`npm test`) | `server/tests/answer-encoding.test.mjs`<br>`server/tests/run-manager.test.mjs`<br>`server/tests/traversal.test.mjs`<br>`server/tests/submit-races.test.mjs` | • **答案编码**：填空 JSON 数组编码 6 类边界（双空、内部含 `===`、单空 `["C#"]`、多分隔符、引号反斜线、嵌套 JSON 文本）与多选编码；<br>• **状态机与游标**：Run 状态机全路径迁移、游标投递、`request_id` 缓存、单 Run 互斥、身份化重进计数；<br>• **遍历会话边界**：导航前 Page 绑定、同课程后继页接续、跨课程/旧页面拒绝、终态持久保留、`get_status` 的 `no-run` + `traversal` 恢复；<br>• **提交防竞态**：提交成功后跨域导航 `SecurityError` 保护、不可变 `SubmitCommand` 与 `attempt_id` 校验、精确 `Frame` 引用 `hello` 失效、子 Frame 任务身份核验。 | ✅ 全部通过 |
+| **隔离浏览器回归** (`npm run test:browser`) | `server/tests/submit-browser.mjs` | 启动真实无头 Chromium（所有 HTTP 请求本地路由响应），验证连续 3 个章节测验提交成功后立即跨域导航、清理期触发 `SecurityError` 时仍可靠投递原 Run 回执，以及父桥对同源子 Frame 结果页的任务身份核验与元素替换隔离。 | ✅ 全部通过 |
 | **双源注入冒烟** | `server/tests/smoke-inject.mjs` | 本地启动两个不同端口（跨 Origin）HTTP 服务，验证 `addInitScript` IIFE 注入、GM Shim 同源 `BroadcastChannel` 与跨源 Server 存储镜像中继、`work-detected` 确认制、题目入队、答案回填、DOM 写入及 `abort_run` 取消传播。 | ✅ 全部通过 |
-| **MCP 协议层测试** | `server/tests/mcp-stdio-test.mjs` | 通过 `@modelcontextprotocol/sdk` 客户端连接 stdio Server，校验 11 个工具的 Schema 注册与基础错误处理。 | ✅ 全部通过 |
-| **章节测验真实 E2E** | `server/tests/full-chain-chapter.mjs`<br>`server/tests/chapter-save-inspect.mjs` | 真实超星课程章节测验（20 题：单选 9、多选 7、判断 4）：自动登录 → 课程遍历命中测验 → 20/20 题回填 `applied`（`finish=true`）→ `ready_for_review` → `submit_paper('temporary')` → 捕获 `/work/addStudentWorkNew` 响应 `status=true` → 进入 `saved-and-left` 终态并继续遍历；独立无注入浏览器复核 20/20 题平台持久化一致（详见 [章节测验验收报告](test-reports/2026-10-24-chapter-e2e.md)）。 | ✅ 真实站点通过 |
-| **整课遍历真实 E2E** | `server/tests/full-traversal.mjs` | 真实超星课程全章节遍历（跳过答题模式，17.8 分钟）：连续遍历 8 个章节的 8 个测验（共 160 题），79 个媒体任务点全部由 F5 守卫安全跳过，每个测验完整走完 `work-ready → 20 skipped → ready_for_review → temporary → saved-and-left`，重进计数 8 次正常重置，最终在末章以可诊断的 `traversal-blocked` 诚实终止，且先前已保存的真实答案未被覆盖破坏（详见 [整课遍历验收报告](test-reports/2026-10-24-full-traversal.md)）。 | ✅ 真实站点通过 |
-| **作业页手动全链 E2E** | `server/tests/full-homework.mjs`<br>`server/tests/homework-save-inspect.mjs` | 真实超星独立作业页（15 题：单选 8、判断 7）：`open_page` → `start_work` 动态探测 `auto_save=true, auto_submit=false` 并同步真实 `frameGen` → 15/15 题真实作答 `applied` → `ready_for_review` → `submit_paper('temporary')` 调用 `saveWork()` 暂存成功进入 `saved` → `abort_run('manual-saved')` 进入 `released` 释放互斥；只读复核 15/15 题已暂存且未交卷（详见 [作业页验收报告](test-reports/2026-10-24-homework-e2e.md)）。 | ✅ 真实站点通过 |
-
-> **已知遗留与后续回归项**：
-> 1. 超星密文字体解密（`FontDecryptor` 位图特征匹配）在个别低置信度字形上存在近似字偏差（如“渭/清”、“邡/部”），已列为独立回归项；
-> 2. 真实站点下 `mode='confirm'` 正式交卷链路（因会消耗真实账号作答机会，目前仅执行 `temporary` 暂存验收）、含图题真实验收及 >70s 慢回填的真实站点验证可在后续按需执行。
+| **MCP 协议层测试** | `server/tests/mcp-stdio-test.mjs` | 通过 `@modelcontextprotocol/sdk` 客户端连接 stdio Server，校验 11 个工具的 Schema 注册与基础调用。 | ✅ 全部通过 |
+| **章节测验真实 E2E** | `server/tests/full-chain-chapter.mjs`<br>`server/tests/chapter-save-inspect.mjs` | 真实超星课程章节测验（20 题：单选 9、多选 7、判断 4）：自动登录 → 课程遍历命中测验 → 20/20 题回填 `applied`（`finish=true`）→ `ready_for_review` → `submit_paper('temporary')` → 捕获 `/work/addStudentWorkNew` 响应 `status=true` → 进入 `saved-and-left` 终态并继续遍历；独立无注入浏览器复核 20/20 题平台持久化一致。 | ✅ 真实站点通过 |
+| **整课遍历真实 E2E** | `server/tests/full-traversal.mjs` | 真实超星课程全章节遍历（跳过答题模式，17.8 分钟）：连续遍历 8 个章节的 8 个测验（共 160 题），79 个媒体任务点全部由 F5 守卫安全跳过，每个测验完整走完 `work-ready → 20 skipped → ready_for_review → temporary → saved-and-left`，重进计数 8 次正常重置，最终在末章以可诊断的 `traversal-blocked` 诚实终止，且先前已保存的真实答案未被覆盖破坏。 | ✅ 真实站点通过 |
+| **作业页手动全链 E2E** | `server/tests/full-homework.mjs`<br>`server/tests/homework-save-inspect.mjs` | 真实超星独立作业页（15 题：单选 8、判断 7）：`open_page` → `start_work` 动态探测 `auto_save=true, auto_submit=false` 并同步真实 `frameGen` → 15/15 题真实作答 `applied` → `ready_for_review` → `submit_paper('temporary')` 调用 `saveWork()` 暂存成功进入 `saved` → `abort_run('manual-saved')` 进入 `released` 释放互斥；只读复核 15/15 题已暂存且未交卷。 | ✅ 真实站点通过 |
 
 ---
 
@@ -327,10 +344,11 @@ Server 通过 `@modelcontextprotocol/sdk` 在 stdio 上暴露 11 个工具（无
 | **Project / Script** | `easy-us` 框架的两级组织单元：`Project` 对应平台（如 `CXProject`），`Script` 对应具体路由脚本（含 `onstart`/`onactive`/`oncomplete` 生命周期）。 |
 | **OCSWorker / resolvers** | `@ocsjs/core` 的自动答题引擎与四题型纯函数匹配器（`single`/`multiple`/`judgement`/`completion`），通过归一化精确匹配、相似度匹配（阈值 0.6）与纯字母兜底完成选项定位。 |
 | **SearchInformation** | 查题器返回结果契约 `{ results: [{ question, answer }], name, error }`。`createMCPAnswerer` 保持此结构以原样复用 `@ocsjs/core` 匹配管线。 |
-| **TraversalSession (`session_id`)** | 一次课程学习页遍历会话，由 `open_page(课程学习页)` 创建，承载单调递增的 `eventId` 历史、消费游标 `cursor` 与 `request_id` 响应缓存。 |
-| **ManagedRun (`run_id`)** | 一次章节测验或独立作业的权威答题实例，由 `work-detected` 事件（课程模式）或 `start_work` 工具（手动模式）创建，全局单活跃 Run 互斥。 |
+| **TraversalSession (`session_id`)** | 一次课程学习页遍历会话，由 `open_page(课程学习页)` 在导航前创建并绑定 `CourseIdentity`，承载单调递增的 `eventId` 历史、消费游标 `cursor`、持久保留的首个终态 `terminalEvent` 与 `request_id` 响应缓存。 |
+| **ManagedRun (`run_id`)** | 一次章节测验或独立作业的权威答题实例，由 `work-detected` 事件（课程模式，须关联有效 Session）或 `start_work` 工具（手动模式）创建，全局单活跃 Run 互斥。 |
+| **SubmitCommand (`attempt_id`)** | 每次 `submit_paper` 生成唯一 `submitAttemptId` 并在页面侧锁定的不可变提交上下文快照（含 `runId`、`sessionId`、`gen`、`attemptId`、`mode`），防止异步提交完成与切章导航竞态导致回执串号。 |
 | **`saved-and-left`** | 课程遍历模式下 `submit_paper('temporary')` 成功后的**终态**：表示答案已暂存且页面即将跳转至下一小节，释放单 Run 互斥，不可再对该 Run 调用 `confirm`。 |
 | **`released`** | 手动作业模式下人工保存完成或暂存收尾时调用 `abort_run(reason: 'manual-saved')` 进入的**正常结束终态**，以区别于异常中止的 `aborted`。 |
-| **事件信封与游标** | Server 为每个 Session 维护的事件队列与已投递位置指针，保证 `wait_next_work` 即使遭遇客户端超时重试也遵循“至多投递一次、早到事件不丢”的精确消费语义。 |
+| **事件信封与游标** | Server 为每个 Session 维护的事件队列与已投递位置指针，保证 `work-ready` 至多投递一次、早到事件不丢，且会话首个终态事件持久保留供后续等待与 `get_status` 恢复。 |
 | **计数身份化 (`RunIdentity`)** | 以 `courseId\|clazzId\|chapterId\|jobId` 组成的唯一测验身份键，确保同一章节内多个不同测验顺序执行时不误触闯关防循环阈值。 |
 | **三层通知 Shim** | `gm-shim.ts` 对 `GM_addValueChangeListener` 的完整实现：本 Frame 同步分发 + 同源 `BroadcastChannel` + 跨源 Server `exposeBinding` 先写值镜像再触发通知。 |

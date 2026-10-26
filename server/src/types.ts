@@ -98,6 +98,12 @@ export interface RunIdentity {
 	jobId?: string;
 }
 
+/** 遍历会话的课程边界；章节和任务点在遍历中会变化。 */
+export interface CourseIdentity {
+	courseId: string;
+	clazzId: string;
+}
+
 export function identityKey(identity: RunIdentity | null | undefined): string {
 	if (!identity) return '';
 	return [identity.courseId, identity.clazzId, identity.chapterId, identity.jobId].map((v) => v ?? '-').join('|');
@@ -149,4 +155,7 @@ export interface ManagedRun {
 	/** 提交结果不确定标记（ADR-0020 §7：先 readResult 核验，禁止盲目重复提交） */
 	submitUncertain?: boolean;
 	submitError?: string;
+	/** 每次提交独立标识，拒绝迟到的旧尝试回执。 */
+	submitAttemptId?: string;
+	submitEvidence?: string;
 }

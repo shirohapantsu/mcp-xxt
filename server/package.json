@@ -15,7 +15,8 @@
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
 		"test": "node --test \"tests/*.test.mjs\"",
-		"sync-bundle": "node scripts/sync-bundle.mjs"
+		"sync-bundle": "node scripts/sync-bundle.mjs",
+		"test:browser": "node --test tests/submit-browser.mjs"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "1.32.2",

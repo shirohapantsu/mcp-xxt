@@ -42,7 +42,9 @@ import {
 	mcpRegisterSubmitCapabilities,
 	mcpSendSubmitResult,
 	mcpWaitSubmitCommand,
-	mcpWorkDetected
+	mcpWorkDetected,
+	registerChapterResultProbe,
+	reportSubmitError
 } from '../mcp/traversal';
 
 /**
@@ -1141,7 +1143,7 @@ function workOrExam(
 							return;
 						}
 						const result = await executeWorkSubmit(window, cmd.mode);
-						await mcpSendSubmitResult(cmd.mode, result.ok, result.evidence);
+						await mcpSendSubmitResult(cmd, result.ok, result.evidence);
 						$console.info(`[mcp] 作业提交回执（${cmd.mode} ok=${result.ok}）：${result.evidence}`);
 						if (result.ok) break;
 					}
@@ -2697,6 +2699,7 @@ async function chapterWithMCP(
 		CommonEvents.emitWorkerStateChange('done');
 		return;
 	}
+	registerChapterResultProbe(frame, identity);
 	$console.info(`[mcp] run ${ack.runId} 已创建：${jobName}`);
 
 	// 等待密文字体解密完成（最多 10s），避免抓到未解密的乱码题干（MCP 无原搜题 3s 间隔的自然缓冲）
@@ -2867,9 +2870,19 @@ async function chapterWithMCP(
 			return;
 		}
 
-		const submitResult = await executeChapterSubmit(frameWindow, cmd.mode);
+		let submitResult: { ok: boolean; evidence: string; uncertain?: boolean };
+		try {
+			submitResult = await executeChapterSubmit(frameWindow, cmd.mode);
+		} catch (error) {
+			reportSubmitError(`run ${cmd.runId} attempt ${cmd.attemptId}`, error);
+			submitResult = {
+				ok: false,
+				uncertain: true,
+				evidence: `提交执行异常：${error instanceof Error ? error.stack ?? error.message : String(error)}`
+			};
+		}
 		// 等待 server 处理回执（保存成功后页面 1s 内 reload，回执必须先于导航落地）
-		await mcpSendSubmitResult(cmd.mode, submitResult.ok, submitResult.evidence);
+		await mcpSendSubmitResult(cmd, submitResult.ok, submitResult.evidence, submitResult.uncertain);
 		$console.info(`[mcp] 提交回执（${cmd.mode} ok=${submitResult.ok}）：${submitResult.evidence}`);
 		if (submitResult.ok) {
 			// 成功：temporary → saved-and-left（页面随后 reload/导航）；confirm → finished

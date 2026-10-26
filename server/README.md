@@ -39,7 +39,8 @@ node scripts/sync-bundle.mjs       # 同步到 server/dist-bundle/bundle.iife.js
 
 ```bash
 npm run build        # tsc → dist/
-npm test             # node --test tests/*.test.mjs（答案编码四类 + run-manager 状态机）
+npm test             # 答案编码、状态机、session 遍历、提交竞态单元测试
+npm run test:browser # 隔离 Chromium：跨域导航后回执、连续三章、父子 frame 身份核验（全部 HTTP 请求本地响应）
 ```
 
 ## 账号配置

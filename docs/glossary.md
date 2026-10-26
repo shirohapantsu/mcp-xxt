@@ -36,7 +36,7 @@
 | **released** | 人工保存场景的终态：abort_run(reason:'manual-saved')，区别于异常中止的 aborted（ADR-0020） |
 | **通知 shim** | GM_addValueChangeListener 的必备实现：写入时本 frame 同步分发（remote=false）；同源 frame 经 BroadcastChannel、跨源 frame 经 server 中继（**先写值镜像、再 remote=true 通知**，因跨源 localStorage 不共享）；easy-us cors/面板通信全链路依赖且无超时，no-op 会静默挂起（ADR-0020/0021） |
 | **JSON 数组编码** | 填空 string[] 以 JSON.stringify 编码进 answer，走 splitAnswer 既有的 JSON 解析分支无损还原；分隔符 join 会丢失答案边界（`["C#"]` 被静默错拆），已废弃（ADR-0021） |
-| **事件信封与游标** | 遍历级事件（session_id+单调 event_id，可无 run_id）与 run 级事件（+run_id）两类信封；server 按 per-session 游标每事件至多投递一次，wait_next_work 隐式续读（ADR-0020） |
+| **事件信封与游标** | 遍历级事件（session_id+单调 event_id，可无 run_id）与 run 级事件（+run_id）两类信封；work-ready 按 per-session 游标至多投递一次，wait_next_work 隐式续读；会话首个终态保留供后续等待和状态查询恢复 |
 | **question-result / work-completed** | 逐题应用结果事件（applied/applied-failed/timeout/skipped/unsupported）与整卷作答完成事件；ready_for_review 的唯一迁移依据（ADR-0020） |
 | **取消 signal** | 经 WorkContext 传入 resolver DOM 包装层与平台 handler，每次 handler 调用 / DOM 写入前检查；区分"取消发起"与"旧任务已停止写入"（ADR-0020） |
 | **计数身份化** | 重进计数按 course/clazz/chapter/job（jobid）身份区分，同章节不同测验不累计，取得进展即重置（ADR-0020） |

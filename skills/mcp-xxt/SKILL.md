@@ -31,7 +31,7 @@ description: "通过 mcp-xxt MCP 操作超星学习通：提取章节测验或�
    | `traversal-blocked` | 停止自动推进，报告 `reason` 和已完成进度 |
    | `page-invalid` | 停止该轮等待，检查登录态、URL 或 session 是否被替换 |
 
-4. 请求因客户端超时而结果丢失时，携带相同 `request_id` 重试；成功收到事件后，下一轮等待用新 ID。事件按 session 游标投递，不会每次重放；丢失 `work-ready` 可用 `get_status({})` 恢复活跃 run。
+4. 请求因客户端超时而结果丢失时，携带相同 `request_id` 重试；成功收到事件后，下一轮等待用新 ID。`work-ready` 按 session 游标投递；丢失时可用 `get_status({})` 恢复活跃 run。结束、受阻和页面失效的终态在 session 内保留，后续等待仍返回该终态；`get_status({})` 的 `traversal` 字段也提供遍历状态。`status:"no-run"` 只表示没有活跃测验，不代表整课完成。
 5. 课程 run 暂存成功返回 `saved-and-left`，随后才等待下一个测验。它是终态，不能再用同一 run 交卷。用户原本已授权交卷时，在本轮审核后选择 `confirm`，不要先暂存离开再尝试 confirm。
 
 只处理用户指定的范围。用户只要求一个章节时，完成该范围后不要主动启动整课答题循环。

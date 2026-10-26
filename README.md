@@ -31,6 +31,7 @@
 - **刷课行为硬禁用**：音视频播放、倍速、PPT、阅读时长等“刷课”功能在代码分支入口处**硬禁用**（仅保留自动跳转框架作为寻找章节测验的导航骨架）。
 - **严格的人机安全边界**：
   - **永不自动交卷**：默认执行 `submit_paper(mode='temporary')` 暂存答案；仅在生成 `get_status` 逐题审核单且获得用户明确交卷授权后，才可调用 `mode='confirm'` 正式交卷。
+  - **保存/交卷防竞态与子 Frame 身份核验**：每次 `submit_paper` 生成独立 `submitAttemptId` 与不可变命令快照；Ajax 响应先于平台回调捕获并缓存原始 jQuery/Document 引用防止跨源导航 `SecurityError`；交卷结果不确定（`uncertain`）时通过绑定测验子 `iframe` 与作业身份（`jobId`/`workId`/`workAnswerId`）的 `readResult` 探针二次核验，杜绝盲目重提与跨章误判。
   - **验证码与风控转人工**：内置持久化 Profile（`server/.browser-profile/`）保存登录态；遇到滑块验证码、扫码或平台风控一律截屏返回 `need-human` 交由人工在有头浏览器窗口处理，绝不内置打码或风控绕过逻辑。
   - **人类监督窗口**：保留裁剪后的页面悬浮面板，实时展示题目填充状态与运行日志。
 
@@ -52,9 +53,9 @@ ocsjs/ (entry-mcp 模式，页面主世界运行)
 | 路径 | 说明 |
 |---|---|
 | `ocsjs/` | `ocsjs` vendor fork（`mcp` 分支），包含 F1～F11 改造点与 `packages/scripts/src/mcp/` 桥接实现 |
-| `server/` | 独立 TypeScript MCP Server 工程，包含 Playwright 宿主、权威状态机、答案编码器与 11 个工具定义 |
+| `server/` | 独立 TypeScript MCP Server 工程，包含 Playwright 宿主、权威状态机、答案编码器、11 个工具定义与回归测试套件 |
 | `skills/mcp-xxt/` | 配套 Agent Skill，定义双入口编排流程、题型答案格式、逐题审核单规范与异常恢复策略 |
-| `docs/` | [总体设计文档](docs/design.md)、[开发文档](docs/开发文档.md)、[21 篇 ADR](docs/adr/README.md)、[术语表](docs/glossary.md)与[真实站点验收报告](docs/test-reports/) |
+| `docs/` | [系统总体设计文档](docs/design.md)、[开发基准文档](docs/开发文档.md)与[领域术语表](docs/glossary.md) |
 
 ---
 
@@ -97,13 +98,15 @@ npx playwright install chromium
 > PLAYWRIGHT_DOWNLOAD_HOST=https://cdn.npmmirror.com/binaries/playwright npx playwright install chromium
 > ```
 
-#### 第三步：同步 Bundle 并编译 Server
+#### 第三步：同步 Bundle、编译 Server 并运行测试验证
 
-将第一步生成的 `bundle.iife.js` 同步到 `server/dist-bundle/`，并编译 TypeScript 源码至 `server/dist/`：
+将第一步生成的 `bundle.iife.js` 同步到 `server/dist-bundle/`，编译 TypeScript 源码至 `server/dist/`，并运行测试套件验证：
 
 ```bash
-node scripts/sync-bundle.mjs
+npm run sync-bundle
 npm run build
+npm test              # 运行 4 套 Node 单元测试（answer-encoding / run-manager / traversal / submit-races）
+npm run test:browser  # （可选）运行 Playwright Chromium 真实浏览器注入与提交流程回归测试
 ```
 
 #### 第四步：（可选）配置账号
@@ -158,14 +161,14 @@ npm run build
 |---|---|
 | `open_login` | 打开超星登录页并尝试配置的账号密码；遇验证码/风控自动截屏返回 `need-human` 转人工处理 |
 | `get_login_status` | 检测当前持久化 Profile 是否已具备有效登录 Cookie |
-| `open_page` | 导航至目标 URL；命中课程学习页（`/mycourse/studentstudy`）时创建新遍历会话并返回 `session_id` |
+| `open_page` | 导航至目标 URL；命中课程学习页（`/mycourse/studentstudy`）时在导航前预创建并绑定新遍历会话（含课程/班级身份 `courseId`/`clazzId`），返回 `session_id` |
 | `start_work` | **手动模式入口**：在独立作业/练习页动态探测保存能力并显式启动答题，返回 `run_id` |
-| `wait_next_work` | **课程遍历入口**：挂起等待下一个章节测验就绪（`work-ready`）或遍历终止事件（支持 `request_id` 幂等重试） |
-| `get_status` | 查询指定或当前活跃 `run` 的状态、动态能力（`auto_save`/`auto_submit`）与逐题结果（审核单数据源） |
+| `wait_next_work` | **课程遍历入口**：挂起等待下一个章节测验就绪（`work-ready`）或遍历终止事件（支持 `request_id` 幂等重试；首个终止事件持久保留，后续调用仍返回该终态） |
+| `get_status` | 查询指定或当前活跃 `run` 的状态、动态能力（`auto_save`/`auto_submit`）、逐题结果与 `traversal` 遍历状态；缺省 `run_id` 且无活跃 Run 时正常返回 `status: 'no-run'`（非错误） |
 | `get_pending_questions` | 获取待答题目列表与选项，题图由 Server 下载后作为顶层 `image` Content Block 返回 |
 | `submit_answer` | 回填单道题答案（填空传 `string[]`，跳过传 `null`） |
 | `submit_answers` | 批量回填多道题答案（逐题独立返回成功/失败） |
-| `submit_paper` | 暂存或交卷：`mode='temporary'` 触发页面暂存（默认安全态）；`mode='confirm'` 正式交卷 |
+| `submit_paper` | 暂存或交卷：`mode='temporary'` 触发页面暂存（默认安全态）；`mode='confirm'` 正式交卷；结果不确定时经子 Frame `readResult` 探针二次核验，无法确认则返回 `submit_uncertain` 严禁盲目重提 |
 | `abort_run` | 终止当前 `run` 并取消页面侧一切等待与 DOM 写入；`reason='manual-saved'` 时记为 `released` 终态 |
 
 ---

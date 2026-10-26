@@ -15,7 +15,7 @@
  *   → 响应 {status:true} → workPop 或跳转 data.url。
  */
 
-import { getBridge, MCPBridge, SubmitMode } from './bridge';
+import { getBridge, MCPBridge, SubmitMode, SubmitCommand } from './bridge';
 
 /** 章节测验提交执行器注册表（由 cx.ts 场景代码注册，保持本模块与平台解耦） */
 type ChapterSubmitExecutor = (mode: SubmitMode) => Promise<{ ok: boolean; evidence: string }>;
@@ -24,10 +24,6 @@ let chapterSubmitExecutor: ChapterSubmitExecutor | undefined;
 
 export function registerChapterSubmitExecutor(executor: ChapterSubmitExecutor) {
 	chapterSubmitExecutor = executor;
-	const bridge = getBridge();
-	if (bridge) {
-		bridge.registerResultProbe(() => probeChapterResult());
-	}
 }
 
 /**
@@ -50,14 +46,19 @@ export async function mcpWorkDetected(payload: {
 }
 
 /** chapter() 提交等待：阻塞至 server submit_paper / abort（取消） */
-export async function mcpWaitSubmitCommand(): Promise<{ mode: SubmitMode } | { cancelled: true }> {
+export async function mcpWaitSubmitCommand(): Promise<SubmitCommand | { cancelled: true }> {
 	const bridge = getBridge();
 	if (!bridge) return { cancelled: true };
 	return bridge.waitSubmitCommand();
 }
 
-export function mcpSendSubmitResult(mode: SubmitMode, ok: boolean, evidence: string): Promise<unknown> {
-	return getBridge()?.sendSubmitResult(mode, ok, evidence) ?? Promise.resolve(undefined);
+export function mcpSendSubmitResult(
+	command: SubmitCommand,
+	ok: boolean,
+	evidence: string,
+	uncertain = false
+): Promise<unknown> {
+	return getBridge()?.sendSubmitResult(command, ok, evidence, uncertain) ?? Promise.resolve(undefined);
 }
 
 // ---------- 提交证据捕获 ----------
@@ -76,58 +77,86 @@ interface SaveCapture {
  */
 function installSaveCapture(frameWindow: Window): SaveCapture | undefined {
 	const win = frameWindow as unknown as {
-		$: undefined | ((...args: unknown[]) => unknown) & { ajax?: (...args: unknown[]) => unknown; toast?: (o: unknown) => void };
+		$:
+			| undefined
+			| (((...args: unknown[]) => unknown) & { ajax?: (...args: unknown[]) => unknown; toast?: (o: unknown) => void });
 		alert?: (...args: unknown[]) => void;
 	};
-	if (typeof win.$ !== 'function' || typeof win.$.ajax !== 'function') {
-		return undefined;
-	}
+	const jq = win.$;
+	if (typeof jq !== 'function' || typeof jq.ajax !== 'function') return undefined;
+	const originalDocument = frameWindow.document;
 	const capture: SaveCapture = { ajax: [], notices: [], restore: () => undefined };
-	const originalAjax = win.$.ajax.bind(win.$);
-	const originalToast = win.$.toast;
+	const originalAjax = jq.ajax;
+	const originalToast = jq.toast;
 	const originalAlert = win.alert;
 
-	win.$.ajax = (...args: unknown[]) => {
-		const opts = args[0] as { url?: string; success?: (data: unknown) => void } | undefined;
-		if (!opts || typeof opts !== 'object') {
-			// 字符串 URL 形式原样透传（页面保存流为对象形式）
-			return originalAjax(...args);
-		}
+	const wrappedAjax = function (this: unknown, ...args: unknown[]) {
+		const opts = args[0] as { url?: string; success?: (...values: unknown[]) => void } | undefined;
+		if (!opts || typeof opts !== 'object') return originalAjax.apply(this, args);
 		const url = String(opts.url ?? '');
 		const originalSuccess = opts.success;
-		const wrapped = {
-			...opts,
-			success: (data: unknown) => {
-				capture.ajax.push({
-					url,
-					status: 200,
-					body: typeof data === 'string' ? data : JSON.stringify(data ?? {}).slice(0, 500)
-				});
-				originalSuccess?.(data);
-			}
-		};
-		return originalAjax(wrapped);
+		return originalAjax.call(
+			this,
+			{
+				...opts,
+				success: function (this: unknown, ...values: unknown[]) {
+					const data = values[0];
+					// 必须在平台原回调（可能立即导航）之前保存本次捕获器的证据。
+					capture.ajax.push({ url, status: 200, body: typeof data === 'string' ? data : JSON.stringify(data ?? {}) });
+					return originalSuccess?.apply(this, values);
+				}
+			},
+			...args.slice(1)
+		);
 	};
-
-	const jq = win.$;
-	win.$.toast = (o: unknown) => {
+	const wrappedToast = (o: unknown) => {
 		const t = (o ?? {}) as { type?: string; content?: unknown };
 		capture.notices.push({ type: String(t.type ?? ''), content: String(t.content ?? '') });
 		originalToast?.call(jq, o);
 	};
-	win.alert = (...args: unknown[]) => {
+	const wrappedAlert = (...args: unknown[]) => {
 		capture.notices.push({ type: 'alert', content: args.map(String).join(' ') });
 		originalAlert?.apply(frameWindow, args);
 	};
-
 	capture.restore = () => {
-		if (win.$) {
-			win.$.ajax = originalAjax as typeof win.$.ajax;
-			win.$.toast = originalToast;
-		}
-		win.alert = originalAlert;
+		// jQuery 是原文档对象，不能再次经导航后的 WindowProxy 读取 win.$。
+		const restore = (name: string, action: () => void) => {
+			try {
+				action();
+			} catch (error) {
+				reportSubmitError(`清理 ${name}`, error);
+			}
+		};
+		restore('ajax', () => {
+			if (jq.ajax === wrappedAjax) jq.ajax = originalAjax;
+		});
+		restore('toast', () => {
+			if (jq.toast === wrappedToast) jq.toast = originalToast;
+		});
+		restore('alert', () => {
+			if (frameWindow.document === originalDocument && win.alert === wrappedAlert) win.alert = originalAlert;
+		});
 	};
+	try {
+		jq.ajax = wrappedAjax;
+		jq.toast = wrappedToast;
+		win.alert = wrappedAlert;
+	} catch (error) {
+		capture.restore();
+		throw error;
+	}
 	return capture;
+}
+
+/** 原异常 stack 同步到 server，诊断本身不能阻断回执。 */
+export function reportSubmitError(stage: string, error: unknown) {
+	try {
+		const detail = (error as { stack?: string } | null)?.stack ?? String(error);
+		const pending = getBridge()?.notify('log', { level: 'error', message: `[submit] ${stage}: ${detail}` });
+		pending?.catch(() => undefined);
+	} catch {
+		/* 页面桥也可能正在卸载 */
+	}
 }
 
 /** 从捕获的 ajax 响应中判定保存/提交结果（权威证据：页面成功分支由响应 JSON data.status 决定）。
@@ -148,7 +177,9 @@ function judgeFromAjax(capture: SaveCapture, mode: SubmitMode): { ok: boolean; e
 			const ok = okFlag === true || okFlag === 1;
 			return {
 				ok,
-				evidence: `${mode === 'temporary' ? '暂存' : '提交'}请求响应 status=${String(okFlag)}${parsed?.msg ? ' msg=' + String(parsed.msg) : ''}（HTTP ${rec.status}）`
+				evidence: `${mode === 'temporary' ? '暂存' : '提交'}请求响应 status=${String(okFlag)}${
+					parsed?.msg ? ' msg=' + String(parsed.msg) : ''
+				}（HTTP ${rec.status}）`
 			};
 		}
 	}
@@ -159,7 +190,8 @@ function judgeFromAjax(capture: SaveCapture, mode: SubmitMode): { ok: boolean; e
 function judgeFromNotices(capture: SaveCapture): { ok: boolean; evidence: string } | undefined {
 	for (const n of capture.notices) {
 		if (/保存成功|提交成功/.test(n.content)) return { ok: true, evidence: `页面提示成功：${n.type} ${n.content}` };
-		if (n.type === 'failure' || /失败/.test(n.content)) return { ok: false, evidence: `页面提示失败：${n.type} ${n.content}` };
+		if (n.type === 'failure' || /失败/.test(n.content))
+			return { ok: false, evidence: `页面提示失败：${n.type} ${n.content}` };
 	}
 	return undefined;
 }
@@ -197,7 +229,14 @@ export async function executeChapterSubmit(
 				return { ok: false, evidence: '页面缺少 btnBlueSubmit 函数（页面结构可能已变化）' };
 			}
 			frameWindow.btnBlueSubmit();
-			await sleep(3000);
+			const confirmationAt = Date.now() + 3000;
+			while (Date.now() < confirmationAt) {
+				const judged = judgeFromAjax(capture, mode) ?? judgeFromNotices(capture);
+				if (judged) return judged;
+				await sleep(100);
+			}
+			const judged = judgeFromAjax(capture, mode) ?? judgeFromNotices(capture);
+			if (judged) return judged;
 			if (typeof frameWindow.submitCheckTimes === 'function') {
 				frameWindow.submitCheckTimes();
 			}
@@ -223,42 +262,82 @@ export async function executeChapterSubmit(
 		}
 		const raw = JSON.stringify({ ajax: capture.ajax, notices: capture.notices }).slice(0, 400);
 		return { ok: false, evidence: `15s 内未捕获保存/提交响应或页面提示（捕获：${raw}），保守判定失败` };
+	} catch (error) {
+		const judged = judgeFromAjax(capture, mode) ?? judgeFromNotices(capture);
+		reportSubmitError('执行', error);
+		if (judged) return judged;
+		throw error;
 	} finally {
 		capture.restore();
 	}
 }
 
-/** 页面状态探测（readResult 核验）：必须返回 saved / submitted 属性（server 核验契约） */
-export function probeChapterResult(): Record<string, unknown> {
-	try {
-		// 本帧即章节测验帧（doHomeWorkNew）：.TiMu 与表单答案在本地文档
-		const hasTiMu = document.querySelectorAll('.TiMu').length > 0;
-		// 表单已有答案（暂存成功 reload 后会把已保存答案回填进表单）；
-		// 注意排除 answertype*（题型隐藏 input，恒有值）
-		let answeredInputs = 0;
-		document.querySelectorAll<HTMLInputElement>('input[id^="answer"]').forEach((el) => {
-			if (/^answer\d+$/.test(el.id) && el.value && el.value.trim().length > 0) answeredInputs++;
-		});
-		const selectedOptions = document.querySelectorAll('.check_answer').length;
-		// 顶层弹窗与测验状态元素在外层（studentstudy / knowledge cards）
-		let workpopVisible = false;
-		try {
-			const jq = (getOperationWindow() as unknown as { $?: (sel: string) => { is?: (sel: string) => boolean } }).$;
-			if (typeof jq === 'function') {
-				workpopVisible = !!jq('#workpop')?.is?.(':visible');
+/** 同一个测验在 API、作答页和结果页的参数名大小写不同。 */
+function taskIdentity(win: Window): Record<string, string> {
+	const values: Record<string, string> = {};
+	const aliases: Record<string, string> = {
+		courseid: 'courseId',
+		clazzid: 'clazzId',
+		classid: 'clazzId',
+		knowledgeid: 'chapterId',
+		chapterid: 'chapterId',
+		jobid: 'jobId',
+		workid: 'workId',
+		workanswerid: 'workAnswerId'
+	};
+	new URL(win.location.href).searchParams.forEach((value, key) => {
+		if (aliases[key.toLowerCase()] && value) values[aliases[key.toLowerCase()]] = value;
+	});
+	win.document.querySelectorAll<HTMLInputElement>('input[type="hidden"]').forEach((input) => {
+		const key = aliases[(input.name || input.id).toLowerCase()];
+		if (key && input.value && !values[key]) values[key] = input.value;
+	});
+	return values;
+}
+
+/** 在真实章节入口注册；闭包绑定本 run 的子 frame 与任务身份。 */
+export function registerChapterResultProbe(frame: HTMLIFrameElement, identity: Record<string, string | undefined>) {
+	const initialWindow = frame.contentWindow;
+	if (!initialWindow) return;
+	const expected = { ...identity, ...taskIdentity(initialWindow) };
+	getBridge()?.registerResultProbe(() => {
+		// iframe 元素可能被替换；逐个核对任务身份，不能探测下一章或任意结果页。
+		const frames = frame.isConnected ? [frame] : Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe'));
+		for (const candidate of frames) {
+			try {
+				const win = candidate.contentWindow;
+				if (!win) continue;
+				const actual = taskIdentity(win);
+				const anchor = ['jobId', 'workAnswerId', 'workId'].some(
+					(key) => expected[key] && actual[key] === expected[key]
+				);
+				if (
+					!anchor ||
+					['courseId', 'clazzId'].some((key) => expected[key] && actual[key] !== expected[key]) ||
+					Object.keys(expected).some((key) => expected[key] && actual[key] && actual[key] !== expected[key])
+				)
+					continue;
+				return probeChapterResult(win);
+			} catch {
+				/* 跨域/导航中的候选不能作为成功证据 */
 			}
-		} catch {
-			// 忽略
 		}
-		const statusEl = document.querySelector<HTMLElement>('.testTit_status');
-		const chapterComplete = statusEl?.classList.contains('testTit_status_complete') ?? false;
-		const saved = hasTiMu && (answeredInputs > 0 || selectedOptions > 0);
-		const submitted =
-			chapterComplete ||
-			/work\/view|submit=true/i.test(location.href);
-		return { hasTiMu, answeredInputs, selectedOptions, workpopVisible, chapterComplete, saved, submitted, href: location.href };
-	} catch (e) {
-		return { error: String(e), saved: false, submitted: false };
+		return { saved: false, submitted: false, evidence: '未找到身份匹配的测验子 frame' };
+	});
+}
+
+/** 只能在身份核对后的测验子 frame 中探测。表单有答案不能证明已暂存。 */
+export function probeChapterResult(win: Window): Record<string, unknown> {
+	try {
+		const doc = win.document;
+		const href = win.location.href;
+		const hasTiMu = doc.querySelectorAll('.TiMu').length > 0;
+		const chapterComplete =
+			doc.querySelector('.testTit_status')?.classList.contains('testTit_status_complete') ?? false;
+		const submitted = chapterComplete || /\/work\/(?:selectWorkQuestionYiPiYue|view)(?:[/?#]|$)/i.test(href);
+		return { hasTiMu, chapterComplete, saved: false, submitted, href, evidence: href };
+	} catch (error) {
+		return { error: String(error), saved: false, submitted: false };
 	}
 }
 
@@ -326,6 +405,11 @@ export async function executeWorkSubmit(
 		}
 		const raw = JSON.stringify({ ajax: capture.ajax, notices: capture.notices }).slice(0, 400);
 		return { ok: false, evidence: `15s 内未捕获保存响应或页面提示（捕获：${raw}），保守判定失败` };
+	} catch (error) {
+		const judged = judgeFromAjax(capture, mode) ?? judgeFromNotices(capture);
+		reportSubmitError('执行', error);
+		if (judged) return judged;
+		throw error;
 	} finally {
 		capture.restore();
 	}

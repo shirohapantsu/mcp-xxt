@@ -10,7 +10,7 @@
 import { BrowserHost } from './browser.js';
 import { EventRouter } from './inject.js';
 import { McpToolError, RunManager } from './run-manager.js';
-import { ManagedRun } from './types.js';
+import { ManagedRun, isTerminalRun } from './types.js';
 
 export type SubmitOutcome =
 	| { kind: 'ok'; run: ManagedRun; evidence: string }
@@ -19,11 +19,7 @@ export type SubmitOutcome =
 	| { kind: 'unsupported'; message: string };
 
 export class Adapters {
-	constructor(
-		private browser: BrowserHost,
-		private rm: RunManager,
-		private router: EventRouter
-	) {}
+	constructor(private browser: BrowserHost, private rm: RunManager, private router: EventRouter) {}
 
 	/**
 	 * submit_paper 执行入口：前置状态校验由 RunManager.submitPaper 完成（可能抛 McpUnsupportedError）。
@@ -37,36 +33,49 @@ export class Adapters {
 			const page = this.browser.getPage(run.pageKey);
 			if (page) {
 				const live = await this.router.queryFrameCapabilities(page);
-				if (live && (JSON.stringify(live) !== JSON.stringify(run.capabilities))) {
+				if (live && JSON.stringify(live) !== JSON.stringify(run.capabilities)) {
 					run = this.rm.updateCapabilities(runId, live);
 				}
 			}
-		} catch { /* 探测失败按已知能力处理 */ }
-		this.rm.submitPaper(runId, mode);
+		} catch {
+			/* 探测失败按已知能力处理 */
+		}
+		await this.rm.submitPaper(runId, mode);
 
-		const result = await this.router.sendSubmit(runId, mode);
-		if (result.timedOut) {
-			// 提交结果不确定：readResult 核验
-			const probe = await this.router.readResult(runId).catch(() => null);
-			if (probe && probe.submitted === true) {
-				const applied = this.rm.applySubmitResult(runId, mode, true, `readResult 核验：已提交（${JSON.stringify(probe.evidence ?? '')}）`);
-				return { kind: 'ok', run: applied, evidence: 'readResult 核验确认' };
+		const knownSuccess = (): SubmitOutcome | undefined => {
+			const current = this.rm.getRun(runId)!;
+			if (
+				current.status === 'finished' ||
+				current.status === 'saved-and-left' ||
+				(mode === 'temporary' && current.status === 'saved')
+			) {
+				return { kind: 'ok', run: current, evidence: current.submitEvidence ?? '当前权威状态已确认成功' };
 			}
-			if (probe && probe.saved === true && mode === 'temporary') {
-				const applied = this.rm.applySubmitResult(runId, mode, true, `readResult 核验：已暂存`);
-				return { kind: 'ok', run: applied, evidence: 'readResult 核验确认' };
+		};
+		let result;
+		try {
+			result = await this.router.sendSubmit(runId, mode);
+		} catch (error) {
+			result = { ok: false, timedOut: true, evidence: String(error) };
+		}
+		const success = knownSuccess();
+		if (success) return success;
+		if (result.timedOut) {
+			// 已终止的 run 不再访问旧 frame；核验期间仍可能收到成功回执。
+			const current = this.rm.getRun(runId)!;
+			const probe = isTerminalRun(current.status) ? null : await this.router.readResult(runId).catch(() => null);
+			const confirmed = knownSuccess();
+			if (confirmed) return confirmed;
+			if (probe && (probe.submitted === true || (probe.saved === true && mode === 'temporary'))) {
+				this.rm.applySubmitResult(runId, mode, true, 'readResult 核验确认');
+				const verified = knownSuccess();
+				if (verified) return verified;
 			}
 			const marked = this.rm.markSubmitUncertain(runId, `提交无回执且核验未确认（${result.evidence}）`);
 			return { kind: 'uncertain', run: marked, evidence: result.evidence };
 		}
 
-		if (result.ok) {
-			// 状态已由事件路径应用（EventRouter 收到 submit-result 时先 applySubmitResult 再唤醒等待者）
-			const applied = this.rm.getRun(runId);
-			return { kind: 'ok', run: applied ?? run, evidence: result.evidence };
-		}
-		const applied = this.rm.getRun(runId) ?? run;
-		return { kind: 'failed', run: applied, evidence: result.evidence };
+		return { kind: 'failed', run: this.rm.getRun(runId) ?? run, evidence: result.evidence };
 	}
 
 	/** abort_run：向页面传播取消 signal（终止所有等待与 DOM 写入） */

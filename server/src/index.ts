@@ -61,7 +61,7 @@ async function main() {
 			(pageKey) => browser.isPageAlive(pageKey),
 			async (run) => {
 				try {
-					await router.sendToRun(run.id, { kind: 'read-result' });
+					await router.sendToRun(run.id, { kind: 'ping' });
 					return true;
 				} catch {
 					return false;

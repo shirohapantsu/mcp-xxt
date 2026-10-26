@@ -11,10 +11,25 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { log } from './log.js';
+import type { CourseIdentity } from './types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const COURSE_STUDY_URL_PATTERN = /\/mycourse\/studentstudy/;
+
+/** 只从课程学习页读取身份，避免将其他课程或普通测验弹窗关联到当前遍历。 */
+export function courseIdentityFromUrl(url: string): CourseIdentity | undefined {
+	try {
+		const parsed = new URL(url);
+		if (!COURSE_STUDY_URL_PATTERN.test(parsed.pathname)) return undefined;
+		const params = new Map(Array.from(parsed.searchParams, ([key, value]) => [key.toLowerCase(), value]));
+		const courseId = params.get('courseid');
+		const clazzId = params.get('clazzid') || params.get('classid');
+		return courseId && clazzId ? { courseId, clazzId } : undefined;
+	} catch {
+		return undefined;
+	}
+}
 /** 手动答题页（作业/整卷预览/随堂练习） */
 export const WORK_PAGE_PATTERNS: RegExp[] = [
 	/\/mooc2\/work\/dowork/,
@@ -151,10 +166,11 @@ export class BrowserHost {
 		return page.mainFrame();
 	}
 
-	async newPage(url: string): Promise<{ page: Page; pageKey: string }> {
+	async newPage(url: string, beforeNavigate?: (page: Page, pageKey: string) => void): Promise<{ page: Page; pageKey: string }> {
 		const context = await this.ensureContext();
 		const page = await context.newPage();
 		const pageKey = this.trackPage(page);
+		beforeNavigate?.(page, pageKey);
 		await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 		return { page, pageKey };
 	}

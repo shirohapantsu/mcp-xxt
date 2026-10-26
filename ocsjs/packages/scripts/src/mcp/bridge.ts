@@ -47,6 +47,15 @@ interface PendingQuestion {
 
 export type SubmitMode = 'temporary' | 'confirm';
 
+/** 提交开始时固定身份，异步执行完成后不能读取可变的 currentRun。 */
+export interface SubmitCommand {
+	mode: SubmitMode;
+	runId: string;
+	sessionId: string | null;
+	gen: string;
+	attemptId: string;
+}
+
 export interface MCPBridge {
 	gen: string;
 	/** 当前绑定的 run（work-detected 确认制回执 / start_work bind-run 下发） */
@@ -65,13 +74,15 @@ export interface MCPBridge {
 	/** 整卷作答结束（doWork 完成点，带 frame 代次） */
 	emitWorkCompleted: () => void;
 	/** 章节测验提交等待（uploadHandler 接入点）：阻塞至 server 下发提交指令或取消 */
-	waitSubmitCommand: () => Promise<{ mode: SubmitMode } | { cancelled: true }>;
+	waitSubmitCommand: () => Promise<SubmitCommand | { cancelled: true }>;
 	/** 提交回执（可等待：binding 被服务端处理完成才 resolve，避免页面 reload 竞态丢回执） */
-	sendSubmitResult: (mode: SubmitMode, ok: boolean, evidence: string) => Promise<unknown>;
+	sendSubmitResult: (command: SubmitCommand, ok: boolean, evidence: string, uncertain?: boolean) => Promise<unknown>;
 	/** readResult 核验：页面侧状态探测（由具体场景 adapter 经 registerResultProbe 注册） */
 	registerResultProbe: (probe: () => Record<string, unknown>) => void;
 	/** work-detected 确认制：server 建 run 并经 binding 返回值回执后，本 frame 才注册题目 */
-	notifyWorkDetected: (payload: Record<string, unknown>) => Promise<{ ok: boolean; run_id?: string; session_id?: string; reason?: string }>;
+	notifyWorkDetected: (
+		payload: Record<string, unknown>
+	) => Promise<{ ok: boolean; run_id?: string; session_id?: string; reason?: string }>;
 	/** 通用上行（log / course-finished / traversal-blocked / page-invalid 等） */
 	notify: (type: string, payload?: Record<string, unknown>) => Promise<unknown>;
 	/** 供 server 下行调用（evaluate 目标） */
@@ -95,7 +106,7 @@ class BridgeImpl implements MCPBridge {
 	private pending = new Map<string, PendingQuestion>();
 	private manualWork: (() => Promise<void>) | null = null;
 	private manualCapabilities: (() => { auto_save: boolean; auto_submit: boolean }) | null = null;
-	private submitWaiter: { resolve: (r: { mode: SubmitMode } | { cancelled: true }) => void } | null = null;
+	private submitWaiter: { resolve: (r: SubmitCommand | { cancelled: true }) => void } | null = null;
 	private resultProbe: (() => Record<string, unknown>) | null = null;
 
 	notify = (type: string, payload: Record<string, unknown> = {}) => {
@@ -211,16 +222,19 @@ class BridgeImpl implements MCPBridge {
 	};
 
 	waitSubmitCommand = () => {
-		return new Promise<{ mode: SubmitMode } | { cancelled: true }>((resolve) => {
+		return new Promise<SubmitCommand | { cancelled: true }>((resolve) => {
 			this.submitWaiter = { resolve };
 		});
 	};
 
-	sendSubmitResult = (mode: SubmitMode, ok: boolean, evidence: string) => {
+	sendSubmitResult = (command: SubmitCommand, ok: boolean, evidence: string, uncertain = false) => {
 		return this.notify('submit-result', {
-			run_id: this.currentRun?.runId,
-			session_id: this.currentRun?.sessionId,
-			mode,
+			run_id: command.runId,
+			session_id: command.sessionId,
+			gen: command.gen,
+			attempt_id: command.attemptId,
+			mode: command.mode,
+			uncertain,
 			ok,
 			evidence
 		});
@@ -243,6 +257,8 @@ class BridgeImpl implements MCPBridge {
 	_onDownlink = (msg: Record<string, unknown>) => {
 		const kind = String(msg.kind ?? '');
 		switch (kind) {
+			case 'ping':
+				break;
 			case 'bind-run':
 				this.currentRun = { runId: String(msg.run_id), sessionId: (msg.session_id as string | null) ?? null };
 				break;
@@ -272,16 +288,32 @@ class BridgeImpl implements MCPBridge {
 				this.cancelAll(String(msg.reason ?? 'cancelled'));
 				break;
 			case 'submit': {
+				const binding = this.currentRun;
+				if (!binding || msg.run_id !== binding.runId || typeof msg.attempt_id !== 'string') break;
 				const mode = msg.mode === 'confirm' ? 'confirm' : 'temporary';
-				this.submitWaiter?.resolve({ mode });
+				this.submitWaiter?.resolve({
+					mode,
+					runId: binding.runId,
+					sessionId: binding.sessionId,
+					gen: this.gen,
+					attemptId: msg.attempt_id
+				});
 				this.submitWaiter = null;
 				break;
 			}
 			case 'read-result': {
-				const probeResult = this.resultProbe?.() ?? {};
+				if (msg.run_id !== this.currentRun?.runId) break;
+				let probeResult: Record<string, unknown>;
+				try {
+					probeResult = this.resultProbe?.() ?? {};
+				} catch (error) {
+					probeResult = { saved: false, submitted: false, error: String(error) };
+				}
 				this.notify('read-result', {
+					...probeResult,
 					run_id: this.currentRun?.runId,
-					...probeResult
+					session_id: this.currentRun?.sessionId,
+					attempt_id: msg.attempt_id
 				});
 				break;
 			}

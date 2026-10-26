@@ -4,3 +4,4 @@ dist-test/
 .browser-profile/
 config/account.json
 *.log
+tests/

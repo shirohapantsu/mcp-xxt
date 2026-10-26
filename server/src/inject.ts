@@ -7,23 +7,25 @@
  */
 
 import { Frame, Page } from 'playwright';
-import { BrowserHost } from './browser.js';
+import { BrowserHost, courseIdentityFromUrl } from './browser.js';
 import { McpToolError, RunManager, WorkDetectedAck } from './run-manager.js';
 import { ManagedQuestion } from './types.js';
 import { log } from './log.js';
 
 export type DownlinkMessage =
+	| { kind: 'ping' }
 	| { kind: 'bind-run'; run_id: string; session_id: string | null }
 	| { kind: 'start-manual' }
 	| { kind: 'deadline'; question_id: string; deadline: number }
 	| { kind: 'answer'; question_id: string; answer: string | null }
 	| { kind: 'cancel'; reason: string }
-	| { kind: 'submit'; mode: 'temporary' | 'confirm' }
-	| { kind: 'read-result' }
+	| { kind: 'submit'; mode: 'temporary' | 'confirm'; run_id: string; attempt_id: string }
+	| { kind: 'read-result'; run_id: string; attempt_id: string }
 	| { kind: 'relay-storage'; key: string; value: unknown }
 	| { kind: 'storage-snapshot'; entries: [string, unknown][] };
 
 interface RunFrameRef {
+	pageKey: string;
 	frame: Frame;
 	url: string;
 	gen: string;
@@ -33,13 +35,10 @@ export class EventRouter {
 	/** runId → frame 引用（下行 evaluate 目标） */
 	private runFrames = new Map<string, RunFrameRef>();
 	/** 等待页面 submit-result / read-result 的解析器 */
-	private submitWaiters = new Map<string, (r: { ok: boolean; evidence: string }) => void>();
+	private submitWaiters = new Map<string, (r: { ok: boolean; evidence: string; uncertain: boolean }) => void>();
 	private readResultWaiters = new Map<string, (r: Record<string, unknown>) => void>();
 
-	constructor(
-		private browser: BrowserHost,
-		private rm: RunManager
-	) {}
+	constructor(private browser: BrowserHost, private rm: RunManager) {}
 
 	// ---------- 上行 ----------
 
@@ -51,7 +50,7 @@ export class EventRouter {
 
 		switch (type) {
 			case 'hello':
-				return this.onHello(pageKey, frameUrl, gen);
+				return this.onHello(pageKey, frame, frameUrl, gen);
 
 			case 'storage': {
 				const key = String(payload.key ?? '');
@@ -65,7 +64,7 @@ export class EventRouter {
 				return { ok: true };
 
 			case 'work-detected':
-				return this.onWorkDetected(pageKey, frame, frameUrl, gen, payload);
+				return this.onWorkDetected(pageKey, page.url(), frame, frameUrl, gen, payload);
 
 			case 'question':
 				return this.onQuestion(payload);
@@ -90,36 +89,33 @@ export class EventRouter {
 
 			case 'submit-result': {
 				const runId = String(payload.run_id ?? '');
+				if (!this.matchesAttempt(runId, pageKey, frame, gen, payload))
+					return { ok: false, reason: 'stale submit-result' };
 				const mode = payload.mode === 'confirm' ? 'confirm' : 'temporary';
 				const ok = payload.ok === true;
 				const evidence = String(payload.evidence ?? '');
-				this.rm.applySubmitResult(runId, mode, ok, evidence);
-				this.submitWaiters.get(runId)?.({ ok, evidence });
+				const uncertain = payload.uncertain === true;
+				if (!uncertain) this.rm.applySubmitResult(runId, mode, ok, evidence);
+				this.submitWaiters.get(runId)?.({ ok, evidence, uncertain });
 				this.submitWaiters.delete(runId);
 				return { ok: true };
 			}
 
 			case 'read-result': {
 				const runId = String(payload.run_id ?? '');
+				if (!this.matchesAttempt(runId, pageKey, frame, gen, payload))
+					return { ok: false, reason: 'stale read-result' };
 				this.readResultWaiters.get(runId)?.(payload);
 				this.readResultWaiters.delete(runId);
 				return { ok: true };
 			}
 
 			case 'course-finished':
-			case 'traversal-blocked': {
-				const session = this.sessionForPage(pageKey);
-				if (session) {
-					this.rm.emitEvent(session, null, type, { reason: payload.reason ?? '' }, { url: frameUrl, gen });
-				}
-				return { ok: true };
-			}
-
+			case 'traversal-blocked':
 			case 'page-invalid': {
-				const session = this.sessionForPage(pageKey);
-				if (session) {
-					this.rm.emitEvent(session, null, 'page-invalid', { reason: payload.reason ?? '' }, { url: frameUrl, gen });
-				}
+				const session = this.sessionForPage(pageKey, page.url(), payload);
+				if (!session) return this.unboundTraversalEvent(type, pageKey, frameUrl, gen);
+				this.rm.emitEvent(session, null, type, { reason: String(payload.reason ?? '') }, { url: frameUrl, gen });
 				return { ok: true };
 			}
 
@@ -129,18 +125,61 @@ export class EventRouter {
 		}
 	}
 
-	private sessionForPage(pageKey: string) {
-		const session = this.rm.getCurrentSession();
-		// 事件归属：按页面找当前 session（open_page 前置创建，导航期间事件不丢失）
-		if (session && session.pageKey === pageKey) return session;
-		return undefined;
+	private sessionForPage(pageKey: string, pageUrl: string, payload: Record<string, unknown>) {
+		const current = this.rm.getCurrentSession();
+		// 带旧 session_id 的迟到事件不能影响重开的课程。
+		if (payload.session_id && payload.session_id !== current?.id) return undefined;
+		return this.rm.resolveSessionPage(pageKey, courseIdentityFromUrl(pageUrl));
 	}
 
-	private async onHello(pageKey: string, frameUrl: string, gen: string) {
+	private unboundTraversalEvent(type: string, pageKey: string, frameUrl: string, gen: string): WorkDetectedAck {
+		const session = this.rm.getCurrentSession();
+		const reason = `遍历事件 ${type} 无法关联课程会话（page=${pageKey}, session=${session?.id ?? 'none'}, sessionPage=${
+			session?.pageKey ?? 'none'
+		}）。`;
+		log.warn(`[traversal] ${reason} frame=${frameUrl} gen=${gen}`);
+		return { ok: false, reason };
+	}
+
+	private matchesAttempt(
+		runId: string,
+		pageKey: string,
+		frame: Frame,
+		gen: string,
+		payload: Record<string, unknown>
+	): boolean {
+		const ref = this.runFrames.get(runId);
+		const run = this.rm.getRun(runId);
+		return !!(
+			ref &&
+			run &&
+			ref.frame === frame &&
+			ref.pageKey === pageKey &&
+			ref.gen === gen &&
+			run.frameGen === gen &&
+			run.submitAttemptId &&
+			payload.attempt_id === run.submitAttemptId &&
+			(payload.session_id ?? null) === run.sessionId
+		);
+	}
+
+	private async onHello(pageKey: string, frame: Frame, frameUrl: string, gen: string) {
 		// frame 重生：绑定该 frame 的未终态 run → aborted（frame 分离）
-		const aborted = this.rm.handleFrameRebirth(frameUrl, gen);
-		if (aborted) {
-			log.warn(`[inject] run ${aborted.id} aborted by frame rebirth: ${frameUrl}`);
+		if (
+			Array.from(this.runFrames.values()).some(
+				(ref) => ref.pageKey === pageKey && ref.frame === frame && ref.gen !== gen
+			)
+		) {
+			// 旧文档的 hello 也可能迟到，不能用它使后继文档失效。
+			const liveGen = await frame
+				.evaluate(() => (window as unknown as { __OCS_MCP_BRIDGE__?: { gen: string } }).__OCS_MCP_BRIDGE__?.gen)
+				.catch(() => undefined);
+			if (liveGen !== gen) return { ok: false, reason: 'stale hello' };
+		}
+		for (const [runId, ref] of this.runFrames) {
+			if (ref.pageKey === pageKey && ref.frame === frame && ref.gen !== gen) {
+				this.rm.handleRunFrameLost(runId, pageKey, ref.gen);
+			}
 		}
 		// 存储快照下发（跨源 frame 初值同步；同源 frame localStorage 已有值，合并无害）
 		const entries = this.rm.getStorageMirror();
@@ -152,12 +191,14 @@ export class EventRouter {
 
 	private onWorkDetected(
 		pageKey: string,
+		pageUrl: string,
 		frame: Frame,
 		frameUrl: string,
 		gen: string,
 		payload: Record<string, unknown>
 	): WorkDetectedAck {
-		const session = this.sessionForPage(pageKey);
+		const session = this.sessionForPage(pageKey, pageUrl, payload);
+		if (!session) return this.unboundTraversalEvent('work-detected', pageKey, frameUrl, gen);
 		const identity = (payload.identity ?? {}) as Record<string, string>;
 		const ack = this.rm.handleWorkDetected({
 			pageKey,
@@ -176,7 +217,7 @@ export class EventRouter {
 			}
 		});
 		if (ack.ok && ack.run_id) {
-			this.runFrames.set(ack.run_id, { frame, url: frameUrl, gen });
+			this.runFrames.set(ack.run_id, { pageKey, frame, url: frameUrl, gen });
 		}
 		return ack;
 	}
@@ -206,7 +247,8 @@ export class EventRouter {
 		const target = frames.find((f) => f.url === frameUrl) ?? frames[0];
 		if (!target) throw new McpToolError(`目标 frame 不可达（${frameUrl}，gen=${gen}）。`);
 		await target.frame.evaluate((m) => {
-			const bridge = (window as unknown as { __OCS_MCP_BRIDGE__?: { _onDownlink: (m: unknown) => void } }).__OCS_MCP_BRIDGE__;
+			const bridge = (window as unknown as { __OCS_MCP_BRIDGE__?: { _onDownlink: (m: unknown) => void } })
+				.__OCS_MCP_BRIDGE__;
 			if (!bridge) throw new Error('MCP bridge 不存在（bundle 未注入或已失效）');
 			bridge._onDownlink(m);
 		}, msg);
@@ -217,23 +259,42 @@ export class EventRouter {
 		const ref = this.runFrames.get(runId);
 		if (!ref) throw new McpToolError(`run ${runId} 没有可用的 frame 引用。`);
 		try {
-			await ref.frame.evaluate((m) => {
-				const bridge = (window as unknown as { __OCS_MCP_BRIDGE__?: { _onDownlink: (m: unknown) => void } }).__OCS_MCP_BRIDGE__;
-				if (!bridge) throw new Error('MCP bridge 不存在（bundle 未注入或已失效）');
-				bridge._onDownlink(m);
-			}, msg);
+			await ref.frame.evaluate(
+				({ msg: m, gen, runId }) => {
+					const bridge = (
+						window as unknown as {
+							__OCS_MCP_BRIDGE__?: {
+								gen: string;
+								currentRun?: { runId: string } | null;
+								_onDownlink: (m: unknown) => void;
+							};
+						}
+					).__OCS_MCP_BRIDGE__;
+					if (!bridge) throw new Error('MCP bridge 不存在（bundle 未注入或已失效）');
+					if (bridge.gen !== gen || (m.kind !== 'bind-run' && bridge.currentRun?.runId !== runId)) {
+						throw new Error('MCP bridge 已更换 document 或 run');
+					}
+					bridge._onDownlink(m);
+				},
+				{ msg, gen: ref.gen, runId }
+			);
 		} catch (err) {
 			// frame 分离：绑定该 run 的未终态 run → aborted
-			const run = this.rm.getRun(runId);
-			if (run) {
-				this.rm.handleFrameRebirth(run.frameUrl, 'detached:' + Date.now());
-			}
+			this.rm.handleRunFrameLost(runId, ref.pageKey, ref.gen);
 			throw new McpToolError(`下行指令失败（frame 可能已分离/导航）：${String(err)}`);
 		}
 	}
 
 	async pushBindRun(runId: string, sessionId: string | null, frame: Frame) {
-		this.runFrames.set(runId, { frame, url: frame.url(), gen: '' });
+		const run = this.rm.getRun(runId);
+		if (!run) throw new McpToolError(`run ${runId} 不存在。`);
+		// 手动入口可能尚未注册 capabilities，不能把其临时代次当作真实 document 代次。
+		const gen = await frame.evaluate(
+			() => (window as unknown as { __OCS_MCP_BRIDGE__?: { gen: string } }).__OCS_MCP_BRIDGE__?.gen
+		);
+		if (!gen) throw new McpToolError('MCP bridge 不存在，无法绑定 run。');
+		run.frameGen = gen;
+		this.runFrames.set(runId, { pageKey: run.pageKey, frame, url: frame.url(), gen: run.frameGen });
 		await this.sendToRun(runId, { kind: 'bind-run', run_id: runId, session_id: sessionId });
 	}
 
@@ -246,47 +307,67 @@ export class EventRouter {
 	}
 
 	async pushCancel(runId: string, reason: string) {
-		await this.sendToRun(runId, { kind: 'cancel', reason }).catch((err) => log.warn(`[inject] cancel push failed: ${err}`));
+		await this.sendToRun(runId, { kind: 'cancel', reason }).catch((err) =>
+			log.warn(`[inject] cancel push failed: ${err}`)
+		);
 	}
 
-	/** submit_paper：下发提交指令并等待页面 submit-result（带超时） */
-	async sendSubmit(runId: string, mode: 'temporary' | 'confirm', timeoutMs = 45_000): Promise<{ ok: boolean; evidence: string; timedOut: boolean }> {
-		const p = new Promise<{ ok: boolean; evidence: string }>((resolve) => {
-			this.submitWaiters.set(runId, resolve);
+	/** 等待者与计时器属于单次请求；成功、失败和超时都必须清理。 */
+	private async requestResult<T>(
+		runId: string,
+		msg: DownlinkMessage,
+		waiters: Map<string, (result: T) => void>,
+		timeoutMs: number
+	): Promise<T | null> {
+		let resolveResult!: (result: T | null) => void;
+		const result = new Promise<T | null>((resolve) => {
+			resolveResult = resolve;
 		});
-		await this.sendToRun(runId, { kind: 'submit', mode });
-		let timedOut = false;
-		const result = await Promise.race([
-			p,
-			new Promise<null>((resolve) =>
-				setTimeout(() => {
-					timedOut = true;
-					this.submitWaiters.delete(runId);
-					resolve(null);
-				}, timeoutMs)
-			)
-		]);
-		if (!result) {
-			return { ok: false, evidence: `提交指令在 ${timeoutMs}ms 内未收到页面回执`, timedOut };
+		const waiter = (value: T) => resolveResult(value);
+		waiters.set(runId, waiter);
+		const timer = setTimeout(() => resolveResult(null), timeoutMs);
+		try {
+			await this.sendToRun(runId, msg);
+			return await result;
+		} finally {
+			clearTimeout(timer);
+			if (waiters.get(runId) === waiter) waiters.delete(runId);
 		}
-		return { ...result, timedOut };
+	}
+
+	/** submit_paper：下发提交指令并等待本次尝试的页面回执。 */
+	async sendSubmit(
+		runId: string,
+		mode: 'temporary' | 'confirm',
+		timeoutMs = 45_000
+	): Promise<{ ok: boolean; evidence: string; timedOut: boolean }> {
+		const attemptId = this.rm.getRun(runId)?.submitAttemptId;
+		if (!attemptId) throw new McpToolError('提交尝试尚未建立。');
+		const result = await this.requestResult(
+			runId,
+			{ kind: 'submit', mode, run_id: runId, attempt_id: attemptId },
+			this.submitWaiters,
+			timeoutMs
+		);
+		return result
+			? { ok: result.ok, evidence: result.evidence, timedOut: result.uncertain }
+			: {
+					ok: false,
+					evidence: `提交指令在 ${timeoutMs}ms 内未收到页面回执`,
+					timedOut: true
+			  };
 	}
 
 	/** readResult 核验（提交结果不确定时） */
 	async readResult(runId: string, timeoutMs = 15_000): Promise<Record<string, unknown> | null> {
-		const p = new Promise<Record<string, unknown>>((resolve) => {
-			this.readResultWaiters.set(runId, resolve);
-		});
-		await this.sendToRun(runId, { kind: 'read-result' });
-		return Promise.race([
-			p,
-			new Promise<null>((resolve) =>
-				setTimeout(() => {
-					this.readResultWaiters.delete(runId);
-					resolve(null);
-				}, timeoutMs)
-			)
-		]);
+		const attemptId = this.rm.getRun(runId)?.submitAttemptId;
+		if (!attemptId) return null;
+		return this.requestResult(
+			runId,
+			{ kind: 'read-result', run_id: runId, attempt_id: attemptId },
+			this.readResultWaiters,
+			timeoutMs
+		);
 	}
 
 	// ---------- 跨源存储中继（D16 / ADR-0021 §1） ----------
@@ -315,11 +396,14 @@ export class EventRouter {
 				}
 				if (origin === senderOrigin) continue; // 同源：BroadcastChannel 已覆盖
 				await ref.frame
-					.evaluate((m) => {
-						const bridge = (window as unknown as { __OCS_MCP_BRIDGE__?: { _onDownlink: (m: unknown) => void } })
-							.__OCS_MCP_BRIDGE__;
-						bridge?._onDownlink(m);
-					}, { kind: 'relay-storage', key, value })
+					.evaluate(
+						(m) => {
+							const bridge = (window as unknown as { __OCS_MCP_BRIDGE__?: { _onDownlink: (m: unknown) => void } })
+								.__OCS_MCP_BRIDGE__;
+							bridge?._onDownlink(m);
+						},
+						{ kind: 'relay-storage', key, value }
+					)
 					.catch(() => undefined);
 			}
 		}
